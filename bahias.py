@@ -4,6 +4,7 @@ import matplotlib.pyplot as plt
 from datetime import datetime, timedelta
 
 from Generales.wmoore_calc import wmoore_calc
+from Funciones_modelo.calcula_linea_xy import calcula_linea_xy
 
 ## SET-UP DEL MODELO
 
@@ -13,21 +14,21 @@ tfin = datetime(2020, 1, 1)
 dt = 1 # Intervalo de tiempo en horas
 
 # Lista de tiempos entre ambas fecha cada hora
-t = [t0 + timedelta(hours=i) for i in range(0, int((tfin - t0).total_seconds() / 3600) + 1, dt)]
+t = [i for i in range(0, int((tfin - t0).total_seconds() / 3600) + 1)]
 
 
-
-"""
 ## Perfiles
 nperf = 100
-d50 = 0.5e-3
+d50 = [0.5e-3]
 dtierra = 200
 dc = 10
 dmax = 10
 berma = 1
 Adean = 0.51 * wmoore_calc(d50) ** 0.44
 
-# Definición de bahías
+# definición LC
+# calculamos LC inicial
+# aqui indica la geometría de los perfiles
 Lbahia1 = 2000
 Hbahia1 = 500
 A1 = 4 * Hbahia1 / (Lbahia1 ** 2)
@@ -40,7 +41,7 @@ Lbahia3 = 1000
 Hbahia3 = 250
 A3 = 4 * Hbahia3 / (Lbahia3 ** 2)
 
-# Creación de perfiles
+# % hacemos bahias independientes y concatenamos
 dint = np.linspace(0, Lbahia1 + 100 + Lbahia2 + 100 + Lbahia3, nperf)
 PERF = []
 
@@ -85,7 +86,7 @@ for i in range(nperf):
     PERF.append(profile)
 
 # Cálculo de la línea
-xlc, ylc = [], []
+xlc, ylc = calcula_linea_xy(PERF,[PERF.yc])
 for profile in PERF:
     xlc.append(profile["xon"] + profile["nx"] * profile["yc"])
     ylc.append(profile["yon"] + profile["ny"] * profile["yc"])
@@ -93,5 +94,3 @@ for profile in PERF:
 # Gráficos
 plt.plot(xlc, ylc)
 plt.hold(True)
-
-"""
