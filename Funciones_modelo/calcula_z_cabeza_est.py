@@ -1,5 +1,9 @@
 import numpy as np
 
+from Funciones_modelo.perfiles_difraccion import perfiles_difraccion
+from Funciones_modelo.point_to_line_distance import point_to_line_distance
+from Funciones_modelo.calcula_z import calcula_z
+
 def calcula_z_cabeza_est(ACT, PERF, tipo):
     # Calculamos la z en la cabeza de la estructura y la normal a considerar en la propagación
     if not ACT:

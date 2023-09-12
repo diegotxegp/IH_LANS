@@ -1,5 +1,7 @@
 import numpy as np
 
+from Funciones_modelo.snell_shoalref import snell_shoalref
+
 def propaga_cabeza(ACT, DYN, t):
     tdyncomun = np.where([d['t'] == t for d in DYN])[0]
     
