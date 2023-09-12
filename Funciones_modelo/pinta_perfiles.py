@@ -1,8 +1,11 @@
 import matplotlib.pyplot as plt
+import numpy as np
+
+from Funciones_modelo.detecta_lcs_bcpun import detecta_lcs_bcpun
 
 def pinta_perfiles(PERF):
-    PBC = detecta_lcs_bcpun(PERF)
-    plt.figure()
+    PBC, PNL = detecta_lcs_bcpun(PERF)
+    
     for i in range(len(PERF)):
         if 'Tipo' in PERF[i]:
             if PERF[i]['Tipo'] == 'lcs':
@@ -16,7 +19,7 @@ def pinta_perfiles(PERF):
         else:
             color = 'k'
         
-        if i in PBC:
+        if np.isin([i],PBC):
             linestyle = '--'
             linewidth = 2
         else:

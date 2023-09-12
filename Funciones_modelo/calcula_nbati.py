@@ -2,13 +2,15 @@ import numpy as np
 from scipy.spatial import distance
 from shapely.geometry import LineString, Point
 
+from Generales.anglecalc import anglecalc
+
 def calcula_nbati(xprop, yprop, PERF):
     # Calculamos las normales salientes de la línea
-    dx = np.gradient(xprop)
-    dy = np.gradient(yprop)
+    nx = np.gradient(xprop)
+    ny = np.gradient(yprop)
     
     # Angulo normal
-    angnorm = np.angle(dx - 1j * dy, deg=True)
+    angnorm = anglecalc(nx, -ny)
     
     # Calculamos perfiles
     for i in range(len(PERF)):

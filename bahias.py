@@ -1,10 +1,15 @@
 import os
 import numpy as np
+import pandas as pd
 import matplotlib.pyplot as plt
 from datetime import datetime, timedelta
+import scipy.io as sio
 
 from Generales.wmoore_calc import wmoore_calc
 from Funciones_modelo.calcula_linea_xy import calcula_linea_xy
+from Funciones_modelo.calcula_nbati import calcula_nbati
+from Funciones_modelo.pinta_perfiles import pinta_perfiles
+from Funciones_modelo.IH_LANS import IH_LANS
 
 ## SET-UP DEL MODELO
 
@@ -86,11 +91,105 @@ for i in range(nperf):
     PERF.append(profile)
 
 # Cálculo de la línea
-xlc, ylc = calcula_linea_xy(PERF,[PERF.yc])
-for profile in PERF:
-    xlc.append(profile["xon"] + profile["nx"] * profile["yc"])
-    ylc.append(profile["yon"] + profile["ny"] * profile["yc"])
+yc = [profile['yc'] for profile in PERF]
+xlc, ylc = calcula_linea_xy(PERF,yc)
+
+PERF=calcula_nbati(xlc,ylc,PERF)
 
 # Gráficos
+plt.figure()
 plt.plot(xlc, ylc)
+
+pinta_perfiles(PERF)
+
+plt.show()
+
+
+# Definir estructuras
+ACT = []
+
+# Oleaje y nivel
+# Creamos serie de dinámicas en cabeza de perfil (batimétrica de 10 m)
+# para flexibilizar las dinámicas de la cabeza de los perfiles
+# cogemos diez puntos de dinámicas distribuidos uniformemente entre los perfiles
+path_d0 = r'D:\IHLANS'
+path_d = os.path.join(path_d0, "data_estudio1.mat")
+DD = sio.loadmat(path_d)
+npundyn = 1
+nperfmaestro = np.round(np.linspace(nperf-1, 0, npundyn, dtype=int))
+nyears = 30
+
+DYN = []
+
+for i in range(len(nperfmaestro)):
+    id = nperfmaestro[i]
+    DYN.append({
+        'X': PERF[id]['xof'],
+        'Y': PERF[id]['yof'],
+        'Hs': np.ones(nyears * 365) * 1,
+        'Tp': np.ones(nyears * 365) * 7,
+        'Hs': [fila[0] for fila in DD['Hs'][:nyears * 365]],  # incluimos oleaje real
+        'Dir': np.ones(nyears * 365) * 0,
+        'SS': np.ones(nyears * 365) * 0,
+        'AT': np.ones(nyears * 365) * 0,
+        'SLR': np.ones(nyears * 365) * 0,
+        'h0': 10  # calado positivo
+    })
+
+t0dyn = pd.to_datetime('01-Jan-1995', format='%d-%b-%Y')
+tfin = t[0] + len(DYN[0]['Hs'])
+tdyn = range(t[0], tfin, 1)
+
+DYN[0]['t'] = tdyn
+
+
+# Creamos estructura de datos de entrada
+# Datos base
+INPUT = {}
+INPUT['PERF'] = PERF
+INPUT['DYN'] = DYN
+INPUT['ACT'] = ACT
+INPUT['t'] = t
+# INPUT['DA'] = DA
+INPUT['dt'] = dt  # horario
+
+# Datos propagación
+INPUT['calcularotura'] = 0
+INPUT['inthidromorfo'] = 0
+INPUT['alpha_int'] = 0
+INPUT['gamma'] = 0.50
+
+# Datos longshore
+INPUT['kcerc'] = [20]
+INPUT['bctype'] = [['Dirichlet', 'Dirichlet'], ['Dirichlet', 'Dirichlet']]
+INPUT['bctypeval'] = np.array([[0, 0], [0, 0]])  # Por defecto Dirichlet!! Q=0 en extremos (playa encajada)
+INPUT['fcourant'] = 0.1  # Entre 0 y 1; 1 cumple courant estricto
+
+# Datos cross-shore
+INPUT['kacr'] = [3.89E-3 * 3]
+INPUT['kero'] = [1.74e-2 * 8]
+INPUT['tstab'] = 365 * 2  # Tiempo de estabilización (inicialización modelo)
+INPUT['tcent'] = 365 * 5  # Tiempo tras el tiempo de estabilización en el que se calcula dy0
+
+# Datos ploteo
+INPUT['plott'] = 1
+INPUT['tplot'] = 365 / 2
+INPUT['toutp'] = 1
+
+
+# Ejecutamos el modelo
+RES = IH_LANS(INPUT)
+
+# Graficamos RES.YLT[:,100]
+plt.plot(RES['YLT'][:, 100])
 plt.hold(True)
+
+# Graficamos RES.YLT[:,100] + RES.YCT[:,100]
+plt.plot(RES['YLT'][:, 100] + RES['YCT'][:, 100])
+
+# Graficamos RES.YCT[:,[1, 50, 100]]
+plt.plot(RES['YCT'][:, [0, 49, 99]])
+
+plt.show()
+
+print("COMPLETED!")
