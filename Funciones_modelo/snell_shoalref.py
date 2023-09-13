@@ -1,6 +1,8 @@
 import numpy as np
 
 from Generales.anglecalc import anglecalc
+from CircSat.circ_dist2 import circ_dist2
+from Funciones_modelo.waveguo import waveguo
 
 def snell_shoalref(Hs0, T0, Dir0, h0, hpoint, nbati):
     # Propagación Ley-Snell + Conservación de Flujo de Energía.

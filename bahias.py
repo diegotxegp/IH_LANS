@@ -19,7 +19,7 @@ tfin = datetime(2020, 1, 1)
 dt = 1 # Intervalo de tiempo en horas
 
 # Lista de tiempos entre ambas fecha cada hora
-t = [i for i in range(0, int((tfin - t0).total_seconds() / 3600) + 1)]
+t = [i for i in range((tfin - t0).days)]
 
 
 ## Perfiles
@@ -138,7 +138,7 @@ for i in range(len(nperfmaestro)):
 
 t0dyn = pd.to_datetime('01-Jan-1995', format='%d-%b-%Y')
 tfin = t[0] + len(DYN[0]['Hs'])
-tdyn = range(t[0], tfin, 1)
+tdyn = [i for i in range(t[0], tfin, 1)]
 
 DYN[0]['t'] = tdyn
 

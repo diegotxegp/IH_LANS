@@ -6,6 +6,7 @@ from Funciones_modelo.une_perfiles_dinamicas import une_perfiles_dinamicas
 from Funciones_modelo.perfiles_actuacion import perfiles_actuacion
 from Funciones_modelo.calcula_z_cabeza_est import calcula_z_cabeza_est
 from Funciones_modelo.propaga_cabeza import propaga_cabeza
+from Funciones_modelo.propaga_rotura import propaga_rotura
 
 def IH_LANS(INPUT):
 
@@ -248,11 +249,25 @@ def IH_LANS(INPUT):
 
     # Propagamos a rotura en estructuras
     dinperf = une_perfiles_dinamicas(PERF, DYN)
-    tdyncomun = np.where(np.all(np.isin(DYN[0].t, t), axis=1))[0]
+    tdyncomun = np.where(np.isin(DYN[0]["t"], t))[0].tolist()
     ACT = perfiles_actuacion(ACT, PERF)
     ACT = calcula_z_cabeza_est(ACT, PERF, cotasZ)
     ACT = propaga_cabeza(ACT, DYN, tdyncomun)
 
+   # Propagamos a rotura sin difracción si no hay interacción
+    if inthidromorfo == 0:
+        print('Calculando rotura sin interacción')
+        DYNP = propaga_rotura(PERF, DYN, gamma, t, refNMM, cotasZ, calcularotura)
+    else:
+        print('Calculando rotura con interacción')
+
+    if inthidromorfo == 1 and calcularotura == 0:
+        warning_msg = (
+            "No se puede calcular la interacción hidro-morfo sin propagar a rotura\n"
+            "Propagación a rotura activada"
+        )
+        print(warning_msg)
+        calcula_rotura = 1
+
+
     print("Completed")
-
-
