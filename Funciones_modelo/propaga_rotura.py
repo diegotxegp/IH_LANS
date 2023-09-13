@@ -10,7 +10,7 @@ def propaga_rotura(PERF, DYN, gamma, t, refNMM, cotasZ, calcularotur):
     dinperf = une_perfiles_dinamicas(PERF, DYN)
     
     # Buscamos fechas coincidentes entre el tiempo de análisis y las dinámicas
-    poscalc = np.where(np.isin(np.array([d.t for d in DYN]), t))[0]
+    poscalc = np.where(np.isin(np.array([d["t"] for d in DYN]), t))[0]
     
     if np.sum(poscalc[1:] - poscalc[:-1]) != len(t) - 1:
         raise ValueError('No hay dinámicas en las fechas del análisis')

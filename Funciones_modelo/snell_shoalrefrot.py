@@ -1,5 +1,5 @@
 import numpy as np
-from scipy.optimize import fzero
+from scipy.optimize import fsolve
 
 from Funciones_modelo.waveguo import waveguo
 
@@ -31,13 +31,13 @@ def snell_shoalrefrot(H, T, DIR, h0, gamma, nbati):
     for it in range(len(H)):
         if abs(Dir_dif[it]) < 90 and H[it] > 0.15:  # Oleaje entrante grande (el pequeño da errores numéricos)
             try:
-                hsol[it] = fzero(lambda h1: prot(H[it], T[it], Dir_dif[it], c0[it], cg0[it], h1, gamma), H[it] / gamma, **options)
+                hsol[it] = fsolve(lambda h1: prot(H[it], T[it], Dir_dif[it], c0[it], cg0[it], h1, gamma), H[it] / gamma, **options)
             except:
                 try:
-                    hsol[it] = fzero(lambda h1: prot(H[it], T[it], Dir_dif[it], c0[it], cg0[it], h1, gamma), H[it] / gamma * 0.8, **options)
+                    hsol[it] = fsolve(lambda h1: prot(H[it], T[it], Dir_dif[it], c0[it], cg0[it], h1, gamma), H[it] / gamma * 0.8, **options)
                 except:
                     try:
-                        hsol[it] = fzero(lambda h1: prot(H[it], T[it], Dir_dif[it], c0[it], cg0[it], h1, gamma), H[it] / gamma * 0.5, **options)
+                        hsol[it] = fsolve(lambda h1: prot(H[it], T[it], Dir_dif[it], c0[it], cg0[it], h1, gamma), H[it] / gamma * 0.5, **options)
                     except:
                         hsol[it] = H[it] / gamma
             if np.isnan(hsol[it]):
