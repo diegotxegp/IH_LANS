@@ -10,9 +10,13 @@ def propaga_rotura(PERF, DYN, gamma, t, refNMM, cotasZ, calcularotur):
     dinperf = une_perfiles_dinamicas(PERF, DYN)
     
     # Buscamos fechas coincidentes entre el tiempo de análisis y las dinámicas
-    poscalc = np.where(np.isin(np.array([d["t"] for d in DYN]), t))[0]
+    poscalc = np.where(np.isin([d["t"] for d in DYN], t).tolist()[0])[0].tolist()
+
+    sum = []
+    for i in range(len(poscalc)-1):
+        sum.append(poscalc[i+1]-poscalc[i])
     
-    if np.sum(poscalc[1:] - poscalc[:-1]) != len(t) - 1:
+    if np.sum(sum) != len(t) - 1:
         raise ValueError('No hay dinámicas en las fechas del análisis')
     
     DYNP = []
@@ -21,14 +25,14 @@ def propaga_rotura(PERF, DYN, gamma, t, refNMM, cotasZ, calcularotur):
         for i in range(len(PERF)):
             print(f'Perfil {i+1} de {len(PERF)}')
             id = dinperf[i]  # Unión perfil dinámicas
-            AT = DYN[id].AT[poscalc]
-            SS = DYN[id].SS[poscalc]
-            SLR = DYN[id].SLR[poscalc]
+            AT = DYN[id]["AT"][poscalc]
+            SS = DYN[id]["SS"][poscalc]
+            SLR = DYN[id]["SLR"][poscalc]
             nivel = AT + SS + SLR + refNMM + DYN[id].h0
-            Hs = DYN[id].Hs[poscalc]
-            Dir = DYN[id].Dir[poscalc]
-            Tp = DYN[id].Tp[poscalc]
-            nbati = PERF[i].nbati
+            Hs = DYN[id]["Hs"][poscalc]
+            Dir = DYN[id]["Dir"][poscalc]
+            Tp = DYN[id]["Tp"][poscalc]
+            nbati = PERF[i]["nbati"]
             Hb, _, _, alphab, hb, _, pnoprop = snell_shoalrefrot(Hs, Tp, Dir, nivel, gamma, nbati)
             # Cocinamos los no propagados
             Hb[pnoprop] = 0.1  # No demasiado pequeña por posibles problemas numéricos
@@ -47,23 +51,24 @@ def propaga_rotura(PERF, DYN, gamma, t, refNMM, cotasZ, calcularotur):
         for i in range(len(PERF)):
             print(f'Perfil {i+1} de {len(PERF)}')
             id = dinperf[i]  # Unión perfil dinámicas
-            AT = DYN[id].AT[poscalc]
-            SS = DYN[id].SS[poscalc]
-            SLR = DYN[id].SLR[poscalc]
-            nivel = AT + SS + SLR + refNMM + DYN[id].h0
-            Hs = DYN[id].Hs[poscalc]
-            Dir = DYN[id].Dir[poscalc]
-            Tp = DYN[id].Tp[poscalc]
-            nbati = PERF[i].nbati
+            AT = DYN[id]["AT"][:len(poscalc)]
+            SS = DYN[id]["SS"][:len(poscalc)]
+            SLR = DYN[id]["SLR"][:len(poscalc)]
+            nivel = AT + SS + SLR + refNMM + DYN[id]["h0"]
+            Hs = DYN[id]["Hs"][:len(poscalc)]
+            Dir = DYN[id]["Dir"][:len(poscalc)]
+            Tp = DYN[id]["Tp"][:len(poscalc)]
+            nbati = PERF[i]["nbati"]
+            hb = [hs / gamma for hs in Hs]
             DYNP.append({
                 'Hb': Hs,
                 'Dirb': Dir,
-                'hb': Hs / gamma,
+                'hb': hb,
                 'Dir0': Dir,
                 'SS': SS,
                 'AT': AT,
                 'SLR': SLR,
-                'wb': szonewidth((Hs / gamma) - SS - AT, cotasZ, PERF[i])  # Trabajamos en nmm local
+                'wb': szonewidth(np.array(hb) - SS - AT, cotasZ, PERF[i])  # Trabajamos en nmm local
             })
 
     if 'RSLR' in DYN[0]:

@@ -19,7 +19,7 @@ tfin = datetime(2020, 1, 1)
 dt = 1 # Intervalo de tiempo en horas
 
 # Lista de tiempos entre ambas fecha cada hora
-t = [i for i in range((tfin - t0).days)]
+t = [i for i in range((tfin - t0).days + 1)]
 
 
 ## Perfiles
