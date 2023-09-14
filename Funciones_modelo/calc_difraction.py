@@ -1,5 +1,7 @@
 import numpy as np
 
+from Funciones_modelo.calc_zonasombra import calc_zonasombra
+
 def calc_difraction(PERF, ACT, estdif, Hi, Di, wi, YLTi, it, gamma):
     xzr = [p['xon'] + p['nx'] * (wi + YLTi) for p in PERF]
     yzr = [p['yon'] + p['ny'] * (wi + YLTi) for p in PERF]
