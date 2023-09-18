@@ -16,8 +16,12 @@ from Funciones_modelo.szonewidth import szonewidth
 from Funciones_modelo.propaga_rotura_i import propaga_rotura_i
 from Funciones_modelo.estructuras_clasifica import estructuras_clasifica
 from Funciones_modelo.calc_difraction import calc_difraction
+from Funciones_modelo.pintainstante import pintainstante
+from Funciones_modelo.aplica_tasa import aplica_tasa
 
 from Funciones_cshore.millerydean_dy0 import millerydean_dy0
+from Funciones_cshore.calcula_cshore_md import calcula_cshore_md
+from Funciones_cshore.kalman_transversal import kalman_transversal
 
 from CircSat.circ_mean import circ_mean
 
@@ -423,5 +427,4 @@ def IH_LANS(INPUT):
             del INPUT['DYNP']
 
         np.savez(namesave, RES=RES, INPUT=INPUT)
-
-        print("Completed")
+        

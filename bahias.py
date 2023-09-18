@@ -192,4 +192,108 @@ plt.plot(RES['YCT'][:, [0, 49, 99]])
 
 plt.show()
 
-print("COMPLETED!")
+
+kcerc = 40
+kacr = 3.89E-3
+kero = 1.74E-2
+plott = 0
+
+# Copia los valores de INPUT en INPUT2 y actualiza los parámetros relevantes
+INPUT2 = INPUT.copy()
+INPUT2['kcerc'] = kcerc
+INPUT2['kacr'] = kacr
+INPUT2['kero'] = kero
+INPUT2['plott'] = plott
+
+# Llama a la función IH_LANS con los nuevos parámetros
+RES2 = IH_LANS(INPUT2)
+
+# Grafica los resultados
+plt.plot(RES['YLT'][:, 100], label='RES.YLT[:,100]')
+plt.plot(RES2['YLT'][:, 100], label='RES2.YLT[:,100]')
+plt.plot(RES['YLT'][:, 100] + RES['YCT'][:, 100], label='RES.YLT[:,100] + RES.YCT[:,100]')
+plt.plot(RES2['YLT'][:, 100] + RES2['YCT'][:, 100], label='RES2.YLT[:,100] + RES2.YCT[:,100]')
+plt.plot(RES['YCT'][:, 100], label='RES.YCT[:,100]')
+plt.plot(RES2['YCT'][:, 100], label='RES2.YCT[:,100]')
+
+# Añade leyendas y muestra el gráfico
+plt.legend()
+plt.show()
+
+
+# Preparamos datos de asimilación cross-shore
+errY = 1  # Error en la posición inicial, [m]
+errK = 50  # Error en la constante longshore
+errvlt = 0.001 / 365 / 24  # Error en la tendencia
+qY = 1e-5  # Ruido en la posición
+qerrK = 1e-1  # Ruido en la constante longshore
+qerrvlt = 1e-9  # Ruido en la tendencia a largo plazo
+R = 1  # Error de la observación
+# Preparamos asimilación cross-shore
+errYct = 1
+qerrYct = 0.2
+errKacr = 1e-3
+errKero = 1e-2
+qerrKacr = 1e-4
+qerrKero = 1e-2
+errDy0 = 1
+qerrDy0 = 0.2
+R_c = 1
+posguarda = list(range(2 * 365, 15 * 365 + 1, 15))  # Posiciones de guardado
+
+for i in range(len(PERF)):
+    # Longshore
+    PERF[i]['rP0'] = np.diag([errY, errK, errvlt])
+    PERF[i]['rQ'] = np.diag([qY, qerrK, qerrvlt])
+    PERF[i]['R'] = R
+    PERF[i]['date_obs'] = RES['t_output'][posguarda]
+    PERF[i]['Y_obs_lt'] = RES['YLT'][posguarda, i]
+
+    # Cross-shore
+    PERF[i]['rPero0_c'] = np.diag([errYct, errKero, 0, 0, errDy0])
+    PERF[i]['rPacr0_c'] = np.diag([0, 0, errYct, errKacr, errDy0])
+    PERF[i]['rQero_c'] = np.diag([qerrYct, qerrKero, 0, 0, qerrDy0])
+    PERF[i]['rQacr_c'] = np.diag([0, 0, qerrYct, qerrKacr, qerrDy0])
+    PERF[i]['R_c'] = R_c
+    PERF[i]['Y_obs_ct'] = RES['YCT'][posguarda, i]
+
+# Crea una copia de INPUT2 y actualiza los parámetros necesarios
+INPUT3 = INPUT2.copy()
+INPUT3['plott'] = 0
+INPUT3['PERF'] = PERF
+INPUT3['data_asim_l'] = 1
+INPUT3['data_asim_c'] = 1
+INPUT3['OUTPUTLIST'] = ['Hbd', 'kcerc', 'vlt']  # Outputs por defecto: t_output e YLT
+
+# Llama a la función IH_LANS con los nuevos parámetros
+RES3 = IH_LANS(INPUT3)
+
+
+tr = 30
+
+# Gráfico Longshore
+plt.figure(figsize=(10, 5))
+plt.plot(RES['t_output'], RES['YLT'][:, tr], label='RES')
+plt.plot(RES['t_output'], RES2['YLT'][:, tr], label='RES2')
+plt.plot(RES['t_output'], RES3['YLT'][:, tr], label='RES3')
+plt.plot(PERF[tr]['date_obs'], PERF[tr]['Y_obs_lt'], 'o', label='Observación')
+plt.gca().xaxis.set_major_formatter(DateFormatter('%Y-%m-%d'))  # Formato de fechas en el eje x
+plt.xlabel('Fecha')
+plt.ylabel('YLT')
+plt.legend()
+plt.title('Gráfico Longshore')
+
+# Gráfico Cross-shore
+plt.figure(figsize=(10, 5))
+plt.plot(RES['t_output'], RES['YCT'][:, tr], label='RES')
+plt.plot(RES['t_output'], RES2['YCT'][:, tr], label='RES2')
+plt.plot(RES['t_output'], RES3['YCT'][:, tr], label='RES3')
+plt.plot(PERF[tr]['date_obs'], PERF[tr]['Y_obs_ct'], 'o', label='Observación')
+plt.gca().xaxis.set_major_formatter(DateFormatter('%Y-%m-%d'))  # Formato de fechas en el eje x
+plt.xlabel('Fecha')
+plt.ylabel('YCT')
+plt.legend()
+plt.title('Gráfico Cross-shore')
+plt.ylim([-50, 50])
+
+plt.show()
