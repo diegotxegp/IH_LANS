@@ -19,6 +19,14 @@ from Funciones_modelo.estructuras_clasifica import estructuras_clasifica
 from Funciones_modelo.calc_difraction import calc_difraction
 from Funciones_modelo.pintainstante import pintainstante
 from Funciones_modelo.aplica_tasa import aplica_tasa
+from Funciones_modelo.corrige_instante_inicial_escollera import corrige_instante_inicial_escollera
+from Funciones_modelo.calcula_caudal import calcula_caudal
+from Funciones_modelo.reparto_bypass import reparto_bypass
+from Funciones_modelo.calcula_gradientes import calcula_gradientes
+from Funciones_modelo.calcula_lc import calcula_lc
+from Funciones_modelo.verifica_courant import verifica_courant
+from Funciones_modelo.kalman_longitudinal import kalman_longitudinal
+from Funciones_modelo.kalman_longitudinal_transversal import kalman_longitudinal_transversal
 
 from Funciones_cshore.millerydean_dy0 import millerydean_dy0
 from Funciones_cshore.calcula_cshore_md import calcula_cshore_md
