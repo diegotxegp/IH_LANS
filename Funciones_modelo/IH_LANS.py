@@ -437,47 +437,47 @@ def IH_LANS(INPUT):
 
             # Guardamos resultados
             if it % toutp == 0:
-            print(f"{it / (len(t) - 1) * 100:.2f}% completado")
-            count_output += 1
-            RES["YLT"][count_output, :] = Ylt
-            RES["YCT"][count_output, :] = Yct
-            RES["t_output"][count_output, :] = t[it + 1]
+                print(f"{it / (len(t) - 1) * 100:.2f}% completado")
+                count_output += 1
+                RES["YLT"][count_output, :] = Ylt
+                RES["YCT"][count_output, :] = Yct
+                RES["t_output"][count_output, :] = t[it + 1]
 
-            if "posvar" in locals():
-                for ivar in range(len(posvar)):
-                    if output_list[posvar[ivar]] == "rP":
-                        rP = np.empty((3, len(psaveasim)))
-                        for is0 in range(len(psaveasim)):
-                            tsave = psaveasim[is0]
-                            temp = DALCS[tsave].P0
-                            erYlt = np.sqrt(temp[0, 0])
-                            erK1 = np.sqrt(temp[1, 1])
-                            K1 = np.log(kcerc[tsave] / DALCS[tsave].kcerc0) / DALCS[tsave].sigmaK
-                            erK = -kcerc[tsave] + DALCS[tsave].kcerc0 * np.exp(DALCS[tsave].sigmaK * (K1 + erK1))
-                            ervlt = np.sqrt(temp[2, 2])
-                            rP[:, is0] = [erYlt, erK, ervlt]
-                        RES["rP"][count_output, :, :] = rP
+                if "posvar" in locals():
+                    for ivar in range(len(posvar)):
+                        if output_list[posvar[ivar]] == "rP":
+                            rP = np.empty((3, len(psaveasim)))
+                            for is0 in range(len(psaveasim)):
+                                tsave = psaveasim[is0]
+                                temp = DALCS[tsave].P0
+                                erYlt = np.sqrt(temp[0, 0])
+                                erK1 = np.sqrt(temp[1, 1])
+                                K1 = np.log(kcerc[tsave] / DALCS[tsave].kcerc0) / DALCS[tsave].sigmaK
+                                erK = -kcerc[tsave] + DALCS[tsave].kcerc0 * np.exp(DALCS[tsave].sigmaK * (K1 + erK1))
+                                ervlt = np.sqrt(temp[2, 2])
+                                rP[:, is0] = [erYlt, erK, ervlt]
+                            RES["rP"][count_output, :, :] = rP
 
-                    elif output_list[posvar[ivar]] == "saltoYlt":
-                        RES[output_list[posvar[ivar]]][count_output, 0:output_length[posvar[ivar]]] = saltoYlt[psaveasim]
-                    elif output_list[posvar[ivar]] == "kcerc":
-                        RES[output_list[posvar[ivar]]][count_output, 0:output_length[posvar[ivar]]] = kcerc[psaveasim]
-                    elif output_list[posvar[ivar]] == "vlt":
-                        RES[output_list[posvar[ivar]]][count_output, 0:output_length[posvar[ivar]]] = vlt[psaveasim]
-                    elif output_list[posvar[ivar]] == "saltoYct":
-                        RES[output_list[posvar[ivar]]][count_output, 0:output_length[posvar[ivar]]] = saltoYct[psaveasim]
-                    elif output_list[posvar[ivar]] == "kacr":
-                        RES[output_list[posvar[ivar]]][count_output, 0:output_length[posvar[ivar]]] = kacr[psaveasim]
-                    elif output_list[posvar[ivar]] == "kero":
-                        RES[output_list[posvar[ivar]]][count_output, 0:output_length[posvar[ivar]]] = kero[psaveasim]
-                    elif output_list[posvar[ivar]] == "dy0":
-                        RES[output_list[posvar[ivar]]][count_output, 0:output_length[posvar[ivar]]] = DY0[psaveasim]
-                    else:
-                        RES[output_list[posvar[ivar]]][count_output, 0:output_length[posvar[ivar]]] = eval(output_list[posvar[ivar]])
+                        elif output_list[posvar[ivar]] == "saltoYlt":
+                            RES[output_list[posvar[ivar]]][count_output, 0:output_length[posvar[ivar]]] = saltoYlt[psaveasim]
+                        elif output_list[posvar[ivar]] == "kcerc":
+                            RES[output_list[posvar[ivar]]][count_output, 0:output_length[posvar[ivar]]] = kcerc[psaveasim]
+                        elif output_list[posvar[ivar]] == "vlt":
+                            RES[output_list[posvar[ivar]]][count_output, 0:output_length[posvar[ivar]]] = vlt[psaveasim]
+                        elif output_list[posvar[ivar]] == "saltoYct":
+                            RES[output_list[posvar[ivar]]][count_output, 0:output_length[posvar[ivar]]] = saltoYct[psaveasim]
+                        elif output_list[posvar[ivar]] == "kacr":
+                            RES[output_list[posvar[ivar]]][count_output, 0:output_length[posvar[ivar]]] = kacr[psaveasim]
+                        elif output_list[posvar[ivar]] == "kero":
+                            RES[output_list[posvar[ivar]]][count_output, 0:output_length[posvar[ivar]]] = kero[psaveasim]
+                        elif output_list[posvar[ivar]] == "dy0":
+                            RES[output_list[posvar[ivar]]][count_output, 0:output_length[posvar[ivar]]] = DY0[psaveasim]
+                        else:
+                            RES[output_list[posvar[ivar]]][count_output, 0:output_length[posvar[ivar]]] = eval(output_list[posvar[ivar]])
 
-    # Actualizamos YLTi para el siguiente time step
-    YLTi = Ylt
-    YCTi = Yct
+            # Actualizamos YLTi para el siguiente time step
+            YLTi = Ylt
+            YCTi = Yct
 
     if not lcs:  # no lcs
         if plott == 1:
