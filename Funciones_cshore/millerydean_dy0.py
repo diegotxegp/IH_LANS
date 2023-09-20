@@ -8,19 +8,19 @@ def millerydean_dy0(tstab, tcent, Adean, Kacr0, Kero0, gammab, DYN, dinperf, t, 
     # La posición de equilibrio se calcula promediando un tiempo de centrado, a partir de la fase transitoria tstab
 
     # Cargamos las dinámicas brutas
-    Hs0 = np.zeros((len(dinperf), len(dinperf[0])))
-    SS0 = np.zeros((len(dinperf), len(dinperf[0])))
-    AT0 = np.zeros((len(dinperf), len(dinperf[0])))
-    TP0 = np.zeros((len(dinperf), len(dinperf[0])))
-    DIR0 = np.zeros((len(dinperf), len(dinperf[0])))
+    Hs0 = np.zeros((len(DYN[dinperf[0]]['Hs']), len(dinperf)))
+    SS0 = np.zeros((len(DYN[dinperf[0]]['SS']), len(dinperf)))
+    AT0 = np.zeros((len(DYN[dinperf[0]]['AT']), len(dinperf)))
+    TP0 = np.zeros((len(DYN[dinperf[0]]['Tp']), len(dinperf)))
+    DIR0 = np.zeros((len(DYN[dinperf[0]]['Dir']), len(dinperf)))
     h0 = np.zeros(len(dinperf))
 
     for i in range(len(dinperf)):
-        Hs0[i, :] = DYN[dinperf[i]]['Hs']
-        SS0[i, :] = DYN[dinperf[i]]['SS']
-        AT0[i, :] = DYN[dinperf[i]]['AT']
-        TP0[i, :] = DYN[dinperf[i]]['Tp']
-        DIR0[i, :] = DYN[dinperf[i]]['Dir']
+        Hs0[:, i] = DYN[dinperf[i]]['Hs']
+        SS0[:, i] = DYN[dinperf[i]]['SS']
+        AT0[:, i] = DYN[dinperf[i]]['AT']
+        TP0[:, i] = DYN[dinperf[i]]['Tp']
+        DIR0[:, i] = DYN[dinperf[i]]['Dir']
         h0[i] = DYN[dinperf[i]]['h0']
 
     # Seleccionamos los perfiles
@@ -29,11 +29,11 @@ def millerydean_dy0(tstab, tcent, Adean, Kacr0, Kero0, gammab, DYN, dinperf, t, 
     ATP = AT0[:, PCALC]
     TpP = TP0[:, PCALC]
     DIRP = DIR0[:, PCALC]
-    nbatiP = nbati[PCALC]
-    hP = h0[PCALC]
+    nbatiP = [nbati[pcalc] for pcalc in PCALC]
+    hP = [h0[pcalc] for pcalc in PCALC]
 
     # Extraer fecha común de cálculo
-    pcomun = np.where(np.isin(np.array([DYN[0]['t']]), np.array([t]), rows=True))
+    pcomun = np.where(np.isin(np.array([DYN[0]['t']]), np.array([t])).tolist()[0])[0].tolist()
     HsC = HsP[pcomun, :]
     SSC = SSP[pcomun, :]
     ATC = ATP[pcomun, :]
@@ -62,10 +62,10 @@ def millerydean_dy0(tstab, tcent, Adean, Kacr0, Kero0, gammab, DYN, dinperf, t, 
     SS_s = np.vstack((SSC[0:tstab, :], SSC))
     AT_s = np.vstack((ATC[0:tstab, :], ATC))
 
-    Adean_dd = Adean[PCALC]
-    Hberm_dd = Hberm[PCALC]
-    Kacr = Kacr0[PCALC]
-    Kero = Kero0[PCALC]
+    Adean_dd = [Adean[pcalc] for pcalc in PCALC]
+    Hberm_dd = [Hberm[pcalc] for pcalc in PCALC]
+    Kacr = [Kacr0[pcalc] for pcalc in PCALC]
+    Kero = [Kero0[pcalc] for pcalc in PCALC]
 
     Wast_s = ((Hs_s / gammab) / Adean_dd) ** 1.5
 
@@ -74,12 +74,12 @@ def millerydean_dy0(tstab, tcent, Adean, Kacr0, Kero0, gammab, DYN, dinperf, t, 
     YstMDt = np.zeros(Hs_s.shape)
 
     # Calculamos la media para el centrado
-    Aacr = Kacr / 2 * dt
-    Aero = Kero / 2 * dt
+    Aacr = [(ka / 2 * dt) for ka in Kacr]
+    Aero = [(ke / 2 * dt) for ke in Kero]
 
     for n in range(tstab + tcent):
         A = Aacr
-        YstMD1 = (YstMDt[n, :] + A * (Yeq_nsl[n + 1, :] + Yeq_nsl[n, :] - YstMDt[n, :])) / (1 + A)
+        YstMD1 = (YstMDt[n, :] + A * (Yeq_nsl[n + 1, :] + Yeq_nsl[n, :] - YstMDt[n, :])) / (np.ones(len(A)) + A)
         posneg = np.where(YstMD1 < YstMDt[n, :])[0]
         # Corrección
         for i in range(len(posneg)):

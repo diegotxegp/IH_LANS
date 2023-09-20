@@ -1,6 +1,7 @@
 import os
 import numpy as np
 import datetime
+import matplotlib.pyplot as plt
 
 from Funciones_modelo.detecta_lcs_bcpun import detecta_lcs_bcpun
 from Funciones_modelo.casa_tobs_tcalc_lc import casa_tobs_tcalc_lc
@@ -274,7 +275,7 @@ def IH_LANS(INPUT):
    # Propagamos a rotura sin difracción si no hay interacción
     if inthidromorfo == 0:
         print('Calculando rotura sin interacción')
-        DYNP = propaga_rotura(PERF, DYN, gamma, t, refNMM, cotasZ, calcularotura)
+        DYNP, poscalc = propaga_rotura(PERF, DYN, gamma, t, refNMM, cotasZ, calcularotura)
     else:
         print('Calculando rotura con interacción')
 
@@ -290,23 +291,26 @@ def IH_LANS(INPUT):
     ## Inicializamos Cshore calculado posicion equilibrio
     # Usamos dinámicas sin propagar a rotura
     # Buscamos perfiles a calcular
-    _, dy00, _ = millerydean_dy0(tstab, tcent, [PERF.Adean], kacr, kero, gamma, DYN, dinperf, t, [PERF.Berma], dt, PLCS_CS, calcularotura, [PERF.nbati], refNMM, gamma)
+    adean = [perf["Adean"][0] for perf in PERF]
+    berma = [perf["Berma"] for perf in PERF]
+    nbati = [perf["nbati"] for perf in PERF]
+    _, dy00, _ = millerydean_dy0(tstab, tcent, adean, kacr, kero, gamma, DYN, dinperf, t, berma, dt, PLCS_CS, calcularotura, nbati, refNMM, gamma)
     dy0 = -dy00
     # dy0 = np.zeros_like(dy0)  # Comentado porque no se usa en el código
     # yst0 = millerydean_na(-dy0, [PERF.Adean], kacr, kero, gamma, DYN, dinperf, t, [PERF.Berma], dt, PCS, calcularotura, [PERF.nbati], refNMM, gamma)
 
 
     # Cuerpo del modelo
-    YLTi = [PERF.yc]
+    YLTi = [perf["yc"] for perf in PERF]
     YCTi = np.zeros(len(YLTi))
     DY0 = np.zeros(len(YLTi))
 
-    if not PLCS.empty:
+    if len(PLCS) > 0:
         if plott == 1:
-            h = figure
-            set(h, 'Position', [50, 50, 1812, 666])
+            h = plt.figure()
+            h.set_size_inches(18.12, 6.66)
 
-        nbati0 = [PERF.nbati]
+        nbati0 = [perf["nbati"] for perf in PERF]
 
         for it in range(len(t) - 1):
             if inthidromorfo == 1:  # con interacción hidromorfo
@@ -319,7 +323,7 @@ def IH_LANS(INPUT):
                 nbatii = calcula_nbati_i(xlc, ylc, 'PBC', PBC)
                 nbati_calc = circ_mean(
                     [nbatii, nbati0] * np.pi / 180, np.tile([alpha_int, 1 - alpha_int], (1, len(nbatii))), 1) * 180 / np.pi
-                poscalc = np.argmin(np.abs(t[it] - DYN[0].t))
+                poscalc = np.argmin(np.abs(t[it] - DYN[0]["t"]))
                 H0 = reduce_estructuras(DYN, 'Hs', poscalc)
                 D0 = reduce_estructuras(DYN, 'Dir', poscalc)
                 Tp0 = reduce_estructuras(DYN, 'Tp', poscalc)
@@ -338,10 +342,10 @@ def IH_LANS(INPUT):
                 SLR0 = reduce_estructuras(DYNP, 'SLR', it)
 
             # Detectamos estructuras activas
-            if not ACT.empty:
+            if len(ACT) > 0:
                 EA = estructuras_clasifica(t[it], ACT)
 
-                camposdif = [i for i, x in enumerate(EA.columns) if x in cdif]
+                camposdif = [i for i, x in enumerate(EA["columns"]) if x in cdif]
 
                 if camposdif:  # existen estructuras que difractan
                     estdif = []
@@ -377,6 +381,172 @@ def IH_LANS(INPUT):
             # Calculamos cshore M&D
             Yct, posero, Yeq = calcula_cshore_md(YCTi, wbd, Hbd, SSi, ATi, kacr, kero, dy0, PLCS_CS, dt, [PERF.Berma])
 
+            # Actualizamos
+            YLTi = corrige_instante_inicial_escollera(YLTi, ACT, EA, t, it)
+
+            # Calculamos caudales longitudinales
+            Q, kest = calcula_caudal(Hbd, Dbd, wbd, dx, EA, YLTi, ACT, PERF, it, tipotrans)
+            Qc = reparto_bypass(Q, EA, ACT, PERF, YLTi, wbd, it)
+
+            # Calcula gradiente Q con BC en extremos
+            dQdx, Qbc = calcula_gradientes(Qc, dx, PNL, PBC, bctype, bctypeval)
+
+            # Verifica Courant
+            tmin = verifica_courant(dx, Qbc, [PERF.dc] + [PERF.Berma], kcerc)
+            if tmin < dt:
+                npartes = min(100, int(1 / tmin / fcourant))
+                warnings.warn(f'Se viola el Courant, Tmin = {tmin:.2f}\nSubdividimos en {npartes} el step')
+                for ipartes in range(npartes):
+                    Yltii = YLTi
+                    Q, _ = calcula_caudal(Hbd, Dbd, wbd, dx, EA, Yltii, ACT, PERF, it, tipotrans)
+                    Qc = reparto_bypass(Q, EA, ACT, PERF, Yltii, wbd, it)
+                    dQdx, Qbc = calcula_gradientes(Qc, dx, PNL, PBC, bctype, bctypeval)
+                    Yltii, _ = calcula_lc(Yltii, dt, Dc + Ber, kcerc / npartes, dQdx, Qbc, dx, ACT, EA)
+                    YLTi = Yltii
+            else:
+                # No se viola el Courant
+                Yltii, kcerc = calcula_lc(YLTi, dt, Dc + Ber, kcerc, dQdx, Qbc, dx, ACT, EA)
+                YLTi = Yltii
+
+            # Aplico tasas y tendencias
+            Ylt = aplica_tasa(Yltii, ACT, EA, vlt, RSLR)
+
+            # Asimilación de observaciones
+            if data_asim_l and not data_asim_lc:
+                Ylt, kcerc, vlt, saltoYlt, DALCSi = kalman_longitudinal(Ylt, kcerc, vlt, dQdx, dt, DA(PLCS), it, PLCS, Dc, Ber, sigmaK)
+                DA(PLCS) = DALCSi
+
+            if data_asim_c and not data_asim_lc:
+                Yct, kacr, kero, saltoYct, DACSi, dy0 = kalman_transversal(Yct, YCTi, Yeq, kacr, kero, dt, DA(PLCS_CS), it, PLCS_CS, posero, dy0)
+                DA(PLCS_CS) = DACSi
+                DY0(PLCS_CS) = dy0
+
+            if data_asim_lc:
+                Ylt1, kcerc1, vlt1, saltoYlt1, DALCS1, Yct1, kacr1, kero1, saltoYct1, dy01 = kalman_longitudinal_transversal(
+                    Ylt, kcerc, vlt, dQdx, dt, DA(PLCS), it, PLCS, PLCS_CS_LCS, Dc, Ber, sigmaK, Yct, YCTi, Yeq, kacr, kero, posero, dy0)
+                Ylt = Ylt1
+                kcerc = kcerc1
+                vlt = vlt1
+                saltoYlt = saltoYlt1
+                DA(PLCS) = DALCS1
+                kacr = kacr1
+                kero = kero1
+                saltoYct = saltoYct1
+                dy0 = dy01
+
+
+            # Guardamos resultados
+            if it % toutp == 0:
+            print(f"{it / (len(t) - 1) * 100:.2f}% completado")
+            count_output += 1
+            RES["YLT"][count_output, :] = Ylt
+            RES["YCT"][count_output, :] = Yct
+            RES["t_output"][count_output, :] = t[it + 1]
+
+            if "posvar" in locals():
+                for ivar in range(len(posvar)):
+                    if output_list[posvar[ivar]] == "rP":
+                        rP = np.empty((3, len(psaveasim)))
+                        for is0 in range(len(psaveasim)):
+                            tsave = psaveasim[is0]
+                            temp = DALCS[tsave].P0
+                            erYlt = np.sqrt(temp[0, 0])
+                            erK1 = np.sqrt(temp[1, 1])
+                            K1 = np.log(kcerc[tsave] / DALCS[tsave].kcerc0) / DALCS[tsave].sigmaK
+                            erK = -kcerc[tsave] + DALCS[tsave].kcerc0 * np.exp(DALCS[tsave].sigmaK * (K1 + erK1))
+                            ervlt = np.sqrt(temp[2, 2])
+                            rP[:, is0] = [erYlt, erK, ervlt]
+                        RES["rP"][count_output, :, :] = rP
+
+                    elif output_list[posvar[ivar]] == "saltoYlt":
+                        RES[output_list[posvar[ivar]]][count_output, 0:output_length[posvar[ivar]]] = saltoYlt[psaveasim]
+                    elif output_list[posvar[ivar]] == "kcerc":
+                        RES[output_list[posvar[ivar]]][count_output, 0:output_length[posvar[ivar]]] = kcerc[psaveasim]
+                    elif output_list[posvar[ivar]] == "vlt":
+                        RES[output_list[posvar[ivar]]][count_output, 0:output_length[posvar[ivar]]] = vlt[psaveasim]
+                    elif output_list[posvar[ivar]] == "saltoYct":
+                        RES[output_list[posvar[ivar]]][count_output, 0:output_length[posvar[ivar]]] = saltoYct[psaveasim]
+                    elif output_list[posvar[ivar]] == "kacr":
+                        RES[output_list[posvar[ivar]]][count_output, 0:output_length[posvar[ivar]]] = kacr[psaveasim]
+                    elif output_list[posvar[ivar]] == "kero":
+                        RES[output_list[posvar[ivar]]][count_output, 0:output_length[posvar[ivar]]] = kero[psaveasim]
+                    elif output_list[posvar[ivar]] == "dy0":
+                        RES[output_list[posvar[ivar]]][count_output, 0:output_length[posvar[ivar]]] = DY0[psaveasim]
+                    else:
+                        RES[output_list[posvar[ivar]]][count_output, 0:output_length[posvar[ivar]]] = eval(output_list[posvar[ivar]])
+
+    # Actualizamos YLTi para el siguiente time step
+    YLTi = Ylt
+    YCTi = Yct
+
+    if not lcs:  # no lcs
+        if plott == 1:
+            h = plt.figure()
+            h.set_position([50, 50, 1812, 666])
+
+        nbati0 = [PERF.nbati]
+        for it in range(len(t) - 1):
+            if inthidromorfo == 1:  # con interacción hidromorfo
+                if "alpha_int" not in INPUT:
+                    alpha_int = 1
+                else:
+                    alpha_int = INPUT["alpha_int"]
+                xlc, ylc = calcula_linea_xy(PERF, YLTi)
+                nbatii = calcula_nbati_i(xlc, ylc, 'PBC', PBC)
+                nbati_calc = circ_mean([nbatii, nbati0] * np.pi / 180, np.tile([alpha_int, 1 - alpha_int], (1, len(nbatii), 1)), 1) * 180 / np.pi
+                poscalc = np.argmin(np.abs(t[it] - DYN[0]["t"]))
+                H0 = reduce_estructuras(DYN, 'Hs', poscalc)
+                D0 = reduce_estructuras(DYN, 'Dir', poscalc)
+                Tp0 = reduce_estructuras(DYN, 'Tp', poscalc)
+                AT0 = reduce_estructuras(DYN, 'AT', poscalc)
+                SS0 = reduce_estructuras(DYN, 'SS', poscalc)
+                SLR0 = reduce_estructuras(DYN, 'SLR', poscalc)
+                RSLR = reduce_estructuras(DYN, 'RSLR', it)
+                h0 = [DYN[0]["h0"]]
+                Hi, D0, Di, w0 = propaga_rotura_i(H0, D0, Tp0, AT0, SS0, SLR0, refNMM, h0, dinperf, nbati_calc, cotasZ, gamma, PERF)
+
+            else:
+                Hi = reduce_estructuras(DYNP, 'Hb', it)
+                D0 = reduce_estructuras(DYNP, 'Dir0', it)
+                Di = reduce_estructuras(DYNP, 'Dirb', it)
+                w0 = reduce_estructuras(DYNP, 'wb', it)
+                AT0 = reduce_estructuras(DYNP, 'AT', it)
+                SS0 = reduce_estructuras(DYNP, 'SS', it)
+                SLR0 = reduce_estructuras(DYNP, 'SLR', it)
+                RSLR = reduce_estructuras(DYNP, 'RSLR', it)
+
+            # Detectamos estructuras activas
+            if not isinstance(ACT, list) or len(ACT) == 0:
+                EA = []
+            else:
+                EA = estructuras_clasifica(t[it], ACT)
+
+            camposdif = [campo for campo in EA if campo in cdif]
+
+            if len(camposdif) > 0:
+                estdif = []
+                for tt in range(len(camposdif)):
+                    estdif.extend(EA[camposdif[tt]])
+                Hbd, Dbd = calc_difraction(PERF, ACT, estdif, Hi, Di, w0, YLTi, it, gamma)
+                wbd = szonewidth(Hbd / gamma, cotasZ, PERF)
+            else:
+                wbd = w0
+                Hbd = Hi
+                Dbd = Di
+
+            ATi = np.zeros(len(PERF))
+            SSi = np.zeros(len(PERF))
+            # Ojo añadir resto dinámicas
+            # Añadimos Bruun a YLT aquí
+            escalaprin = 50
+            if it % tplot == 0 and plott == 1:
+                pintainstante(PERF, YLTi + YCTi, ACT, EA, Hbd, D0, Dbd, wbd, t, it, escalaprin)
+                plt.draw()
+                plt.clf()
+
+            # Calculamos cshore M&D
+            Yct, posero, Yeq = calcula_cshore_md(YCTi, wbd, Hbd, SSi, ATi, kacr, kero, dy0, PLCS_CS, dt, [PERF["Berma"]])
+
             # Aplicamos tasas y tendencias
             Ylt = aplica_tasa(YLTi, ACT, EA, vlt, RSLR)
 
@@ -386,45 +556,16 @@ def IH_LANS(INPUT):
                 DA[PLCS_CS] = DACSi
                 DY0[PLCS_CS] = dy0
 
-            # Guardamos resultados
-            if it % toutp == 0:
-                print(f'{it / (len(t) - 1) * 100:.2f}% completado')
-                count_output += 1
-                RES['YLT'][count_output, :] = Ylt
-                RES['YCT'][count_output, :] = Yct
-                RES['t_output'][count_output, :] = t[it + 1]
-
-                if 'posvar' in locals():
-                    for ivar in range(len(posvar)):
-                        if output_list[posvar[ivar]] == 'saltoYct':
-                            RES[output_list[posvar[ivar]]][count_output, 0:output_length[posvar[ivar]]] = saltoYct[psaveasim]
-                        elif output_list[posvar[ivar]] == 'kacr':
-                            RES[output_list[posvar[ivar]]][count_output, 0:output_length[posvar[ivar]]] = kacr[psaveasim]
-                        elif output_list[posvar[ivar]] == 'kero':
-                            RES[output_list[posvar[ivar]]][count_output, 0:output_length[posvar[ivar]]] = kero[psaveasim]
-                        elif output_list[posvar[ivar]] == 'dy0':
-                            RES[output_list[posvar[ivar]]][count_output, 0:output_length[posvar[ivar]]] = DY0[psaveasim]
-                        else:
-                            RES[output_list[posvar[ivar]]][count_output, 0:output_length[posvar[ivar]]] = eval(output_list[posvar[ivar]])
-
-            # Actualizamos YLTi para el siguiente time step
-            YLTi = Ylt
-            YCTi = Yct
-
-    # Guardamos
-    if 'path_save' in INPUT:
-        if 'nsave' in INPUT:
-            nsave = INPUT.nsave
+    # Cierre de todas las figuras (plots)
+    if "path_save" in INPUT:
+        if "nsave" in INPUT:
+            nsave = INPUT["nsave"]
         else:
-            nsave = ''
-
-        if not os.path.exists(INPUT.path_save):
-            os.makedirs(INPUT.path_save)
-
-        namesave = os.path.join(INPUT.path_save, f'TEST_{nsave}_date_{datetime.now().strftime("%H-%M-%S")}.mat')
-
-        if 'DYNP' in INPUT:
-            del INPUT['DYNP']
-
+            nsave = ""
+        if not os.path.exists(INPUT["path_save"]):
+            os.mkdir(INPUT["path_save"])
+        namesave = os.path.join(INPUT["path_save"], f"TEST_{nsave}_date_{datetime.now().strftime('%H-%M-%S')}.mat")
+        # Borramos DYNP del guardado, pesa mucho
+        if "DYNP" in INPUT:
+            del INPUT["DYNP"]
         np.savez(namesave, RES=RES, INPUT=INPUT)
-        

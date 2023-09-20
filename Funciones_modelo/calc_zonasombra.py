@@ -370,7 +370,7 @@ def calc_zonasombra(PERF, ACTi, YLTi, wi, it, ploteo):
 
                     if ploteo:
                         # Pintamos
-                        plt.plot([PERF[i]['xon'], PERF[i]['xof'] for i in range(len(PERF))], [PERF[i]['yon'], PERF[i]['yof'] for i in range(len(PERF))], 'k:')
+                        plt.plot([(PERF[i]['xon'], PERF[i]['xof']) for i in range(len(PERF))], [(PERF[i]['yon'], PERF[i]['yof']) for i in range(len(PERF))], 'k:')
                         plt.plot(xlc, ylc, 'o')
                         plt.plot(xzr, yzr, '*')
                         plt.plot(xpint, ypint, '*')

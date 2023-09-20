@@ -37,6 +37,7 @@ def calcula_nbati(xprop, yprop, PERF):
         
         # Ordenamos las distancias en orden creciente
         sorted_indices = np.argsort(dist)
+        dist.sort()
         
         # Promediamos el ángulo entre puntos adyacentes ponderado por la distancia
         idx1, idx2 = sorted_indices[:2]

@@ -5,12 +5,12 @@ def pintainstante(PERF, YLTi, ACT, EA, Hi, D0, Di, wi, t, it, escalaprin):
     # Crea una figura y ajusta su posición
     # h = plt.figure()
     # plt.title(t[it])
-    xlci = [perf.xon + perf.nx * YLTi for perf in PERF]
-    ylci = [perf.yon + perf.ny * YLTi for perf in PERF]
+    xlci = [perf["xon"] + perf["nx"] * YLTi for perf in PERF]
+    ylci = [perf["yon"] + perf["ny"] * YLTi for perf in PERF]
 
     # Pinta la LC y el área del mar
-    politierrax = [perf.xon for perf in PERF] + list(reversed(xlci)) + [PERF[0].xon]
-    politierray = [perf.yon for perf in PERF] + list(reversed(ylci)) + [PERF[0].yon]
+    politierrax = [perf["xon"] for perf in PERF] + list(reversed(xlci)) + [PERF[0]["xon"]]
+    politierray = [perf["yon"] for perf in PERF] + list(reversed(ylci)) + [PERF[0]["yon"]]
     tierra = plt.Polygon(np.array([politierrax, politierray]).T, facecolor=(247/255, 243/255, 141/255))
     plt.gca().add_patch(tierra)
 
@@ -20,10 +20,10 @@ def pintainstante(PERF, YLTi, ACT, EA, Hi, D0, Di, wi, t, it, escalaprin):
     maxy = float("-inf")
 
     for perf in PERF:
-        xon = perf.xon
-        xof = perf.xof
-        yon = perf.yon
-        yof = perf.yof
+        xon = perf["xon"]
+        xof = perf["xof"]
+        yon = perf["yon"]
+        yof = perf["yof"]
         plt.plot([xon, xof], [yon, yof], 'k.:', linewidth=2)
         if xon < minx or xof < minx:
             minx = min(xon, xof)
@@ -47,10 +47,10 @@ def pintainstante(PERF, YLTi, ACT, EA, Hi, D0, Di, wi, t, it, escalaprin):
         plt.quiver(perf.xof, perf.yof, *q_params)
 
     # Pinta ZR0
-    xr = [perf.xon + perf.nx * (wi + YLTi) for perf in PERF]
-    yr = [perf.yon + perf.ny * (wi + YLTi) for perf in PERF]
-    xr2 = [perf.xon + perf.nx * (1.25 * wi + YLTi) for perf in PERF]
-    yr2 = [perf.yon + perf.ny * (1.25 * wi + YLTi) for perf in PERF]
+    xr = [perf["xon"] + perf["nx"] * (wi + YLTi) for perf in PERF]
+    yr = [perf["yon"] + perf["ny"] * (wi + YLTi) for perf in PERF]
+    xr2 = [perf["xon"] + perf["nx"] * (1.25 * wi + YLTi) for perf in PERF]
+    yr2 = [perf["yon"] + perf["ny"] * (1.25 * wi + YLTi) for perf in PERF]
     plt.plot(xr, yr, 'b--', linewidth=2)
     plt.plot(xr, yr, 'bo', markerfacecolor='b')
     plt.plot(xr2, yr2, 'r--', linewidth=2)
@@ -71,8 +71,8 @@ def pintainstante(PERF, YLTi, ACT, EA, Hi, D0, Di, wi, t, it, escalaprin):
     nyp = [np.gradient(ylci) / np.hypot(np.gradient(ylci), np.gradient(xlci))]
 
     # Pinta LC0
-    xlc0 = [perf.xon + perf.nx * perf.yc for perf in PERF]
-    ylc0 = [perf.yon + perf.ny * perf.yc for perf in PERF]
+    xlc0 = [perf["xon"] + perf["nx"] * perf["yc"] for perf in PERF]
+    ylc0 = [perf["yon"] + perf["ny"] * perf["yc"] for perf in PERF]
     plt.plot(xlc0, ylc0, 'k--', linewidth=2)
 
     # Pinta estructuras activas
