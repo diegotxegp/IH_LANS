@@ -375,8 +375,8 @@ def IH_LANS(INPUT):
 
             if it % tplot == 0 and plott == 1:
                 pintainstante(PERF, YLTi + YCTi, ACT, EA, Hbd, D0, Dbd, wbd, t, it, escalaprin)
-                drawnow
-                cla()
+                plt.draw()
+                plt.clf()
 
             # Calculamos cshore M&D
             Yct, posero, Yeq = calcula_cshore_md(YCTi, wbd, Hbd, SSi, ATi, kacr, kero, dy0, PLCS_CS, dt, [PERF.Berma])
@@ -479,7 +479,7 @@ def IH_LANS(INPUT):
             YLTi = Ylt
             YCTi = Yct
 
-    if not lcs:  # no lcs
+    else:  # no lcs
         if plott == 1:
             h = plt.figure()
             h.set_position([50, 50, 1812, 666])
@@ -516,20 +516,31 @@ def IH_LANS(INPUT):
                 RSLR = reduce_estructuras(DYNP, 'RSLR', it)
 
             # Detectamos estructuras activas
-            if not isinstance(ACT, list) or len(ACT) == 0:
-                EA = []
-            else:
+            if len(ACT) == 0:
                 EA = estructuras_clasifica(t[it], ACT)
 
-            camposdif = [campo for campo in EA if campo in cdif]
+                camposdif = [campo for campo in EA if campo in cdif]
 
-            if len(camposdif) > 0:
-                estdif = []
-                for tt in range(len(camposdif)):
-                    estdif.extend(EA[camposdif[tt]])
-                Hbd, Dbd = calc_difraction(PERF, ACT, estdif, Hi, Di, w0, YLTi, it, gamma)
-                wbd = szonewidth(Hbd / gamma, cotasZ, PERF)
+                if len(camposdif) > 0:
+                    estdif = []
+                    for tt in range(len(camposdif)):
+                        estdif.extend(EA[camposdif[tt]])
+
+                    # ajustamos dinamicas por difraccion en estructuras
+                    # extraemos las dinamicas de la fecha para reducir el volumen de
+                    # informacion que pasamos
+                    # detectamos estructuras activas que difractan
+                    # extraemos variables de oleaje en el instante 
+                    #[psombra, pcesion]=calc_zonasombra(PERF,ACT(1),YLTi,wi,it,1);
+                    Hbd, Dbd = calc_difraction(PERF, ACT, estdif, Hi, Di, w0, YLTi, it, gamma)
+                    wbd = szonewidth(Hbd / gamma, cotasZ, PERF)
+                else:
+                    wbd = w0
+                    Hbd = Hi
+                    Dbd = Di
+
             else:
+                EA = []
                 wbd = w0
                 Hbd = Hi
                 Dbd = Di
@@ -555,6 +566,34 @@ def IH_LANS(INPUT):
                 Yct, kacr, kero, saltoYct, DACSi, dy0 = kalman_transversal(Yct, YCTi, Yeq, kacr, kero, dt, DA[PLCS_CS], it, PLCS_CS, posero, dy0)
                 DA[PLCS_CS] = DACSi
                 DY0[PLCS_CS] = dy0
+
+
+            # Guardamos resultados
+            for it in range(len(t) - 1):
+                if it % toutp == 0:
+                    print(f"{it / (len(t) - 1) * 100:.2f}% completado")
+                    count_output += 1
+                    RES["YLT"][count_output, :] = Ylt
+                    RES["YCT"][count_output, :] = Yct
+                    RES["t_output"][count_output, :] = t[it + 1]
+
+                    if "posvar" in locals():
+                        for ivar in range(len(posvar)):
+                            if output_list[posvar[ivar]] == "saltoYct":
+                                RES[output_list[posvar[ivar]]][count_output, 0:output_length[posvar[ivar]]] = saltoYct(psaveasim)
+                            elif output_list[posvar[ivar]] == "kacr":
+                                RES[output_list[posvar[ivar]]][count_output, 0:output_length[posvar[ivar]]] = kacr(psaveasim)
+                            elif output_list[posvar[ivar]] == "kero":
+                                RES[output_list[posvar[ivar]]][count_output, 0:output_length[posvar[ivar]]] = kero(psaveasim)
+                            elif output_list[posvar[ivar]] == "dy0":
+                                RES[output_list[posvar[ivar]]][count_output, 0:output_length[posvar[ivar]]] = DY0(psaveasim)
+                            else:
+                                RES[output_list[posvar[ivar]]][count_output, 0:output_length[posvar[ivar]]] = eval(output_list[posvar[ivar]])
+
+            # Actualizamos YLTi para el siguiente time step
+            YLTi = Ylt
+            YCTi = Yct
+            
 
     # Cierre de todas las figuras (plots)
     if "path_save" in INPUT:
