@@ -416,7 +416,7 @@ def IH_LANS(INPUT):
                     YLTi = Yltii
             else:
                 # No se viola el Courant
-                Yltii, kcerc = calcula_lc(YLTi, dt, Dc + Ber, kcerc, dQdx, Qbc, dx, ACT, EA)
+                Yltii, kcerc = calcula_lc(YLTi, dt, np.array(Dc) + np.array(Ber), np.array(kcerc), dQdx, Qbc, dx, ACT, EA)
                 YLTi = Yltii
 
             # Aplico tasas y tendencias

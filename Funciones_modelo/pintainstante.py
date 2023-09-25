@@ -1,30 +1,39 @@
 import numpy as np
 import matplotlib.pyplot as plt
 
-def pintainstante(PERF, YLTi, ACT, EA, Hi, D0, Di, wi, t, it, escalaprin):
-    # Crea una figura y ajusta su posición
-    # h = plt.figure()
-    # plt.title(t[it])
-    xlci = [perf["xon"] + perf["nx"] * YLTi for perf in PERF]
-    ylci = [perf["yon"] + perf["ny"] * YLTi for perf in PERF]
+from Funciones_modelo.pinta_perfiles import pinta_perfiles
 
-    # Pinta la LC y el área del mar
-    politierrax = [perf["xon"] for perf in PERF] + list(reversed(xlci)) + [PERF[0]["xon"]]
-    politierray = [perf["yon"] for perf in PERF] + list(reversed(ylci)) + [PERF[0]["yon"]]
-    tierra = plt.Polygon(np.array([politierrax, politierray]).T, facecolor=(247/255, 243/255, 141/255))
+def pintainstante(PERF, YLTi, ACT, EA, Hi, D0, Di, wi, t, it, escalaprin):    
+    # Pintamos instante de lc
+    plt.title(str(t[it]))
+    
+    xlci = [perf['xon'] + perf['nx'] * YLTi for perf in PERF]
+    ylci = [perf['yon'] + perf['ny'] * YLTi for perf in PERF]
+    
+    # Pintamos LC y mar con área
+    politierrax = [perf['xon'] for perf in PERF] + list(reversed(xlci)) + [PERF[0]['xon']]
+    politierray = [perf['yon'] for perf in PERF] + list(reversed(ylci)) + [PERF[0]['yon']]
+
+    politierra = zip(politierrax,politierray)
+    
+    tierra = plt.Polygon([(1,2),(3,4)], facecolor=(247 / 255, 243 / 255, 141 / 255), edgecolor='none')
     plt.gca().add_patch(tierra)
+    
+    minx = 1e9
+    maxx = -1e9
+    miny = 1e9
+    maxy = -1e9
 
-    minx = float("inf")
-    maxx = float("-inf")
-    miny = float("inf")
-    maxy = float("-inf")
-
-    for perf in PERF:
-        xon = perf["xon"]
-        xof = perf["xof"]
-        yon = perf["yon"]
-        yof = perf["yof"]
+    pinta_perfiles(PERF)
+    
+    for i in range(len(PERF)):
+        xon = PERF[i]['xon']
+        xof = PERF[i]['xof']
+        yon = PERF[i]['yon']
+        yof = PERF[i]['yof']
+        
         plt.plot([xon, xof], [yon, yof], 'k.:', linewidth=2)
+        
         if xon < minx or xof < minx:
             minx = min(xon, xof)
         if xon > maxx or xof > maxx:
@@ -33,106 +42,146 @@ def pintainstante(PERF, YLTi, ACT, EA, Hi, D0, Di, wi, t, it, escalaprin):
             miny = min(yon, yof)
         if yon > maxy or yof > maxy:
             maxy = max(yon, yof)
-
-    # Pinta el oleaje en la cabeza de los perfiles
-    quiver_params = {
-        'angles': 270 - np.array(D0),
-        'scale': escalaprin,
-        'scale_units': 'xy',
-        'pivot': 'tail',
-        'color': 'k',
-        'linewidth': 2
-    }
-    for perf, q_params in zip(PERF, quiver_params):
-        plt.quiver(perf.xof, perf.yof, *q_params)
-
-    # Pinta ZR0
-    xr = [perf["xon"] + perf["nx"] * (wi + YLTi) for perf in PERF]
-    yr = [perf["yon"] + perf["ny"] * (wi + YLTi) for perf in PERF]
-    xr2 = [perf["xon"] + perf["nx"] * (1.25 * wi + YLTi) for perf in PERF]
-    yr2 = [perf["yon"] + perf["ny"] * (1.25 * wi + YLTi) for perf in PERF]
+    
+    # Pintamos oleaje en cabeza de perfiles
+    quiver_scale = escalaprin
+    quiver_x = [perf['xof'] for perf in PERF]
+    quiver_y = [perf['yof'] for perf in PERF]
+    quiver_dir = 270 - D0
+    quiver_dx = quiver_scale * np.cos(np.deg2rad(quiver_dir))
+    quiver_dy = quiver_scale * np.sin(np.deg2rad(quiver_dir))
+    
+    plt.quiver(quiver_x, quiver_y, quiver_dx, quiver_dy, angles='xy', scale_units='xy', scale=1, color='k', linewidth=2)
+    
+    # Pintamos ZR0
+    xr = [perf['xon'] + perf['nx'] * (wi + YLTi) for perf in PERF]
+    yr = [perf['yon'] + perf['ny'] * (wi + YLTi) for perf in PERF]
+    xr2 = [perf['xon'] + perf['nx'] * (1.25 * wi + YLTi) for perf in PERF]
+    yr2 = [perf['yon'] + perf['ny'] * (1.25 * wi + YLTi) for perf in PERF]
+    
     plt.plot(xr, yr, 'b--', linewidth=2)
     plt.plot(xr, yr, 'bo', markerfacecolor='b')
     plt.plot(xr2, yr2, 'r--', linewidth=2)
-
-    # Pinta dirección sin corregir
-    quiver_params = {
-        'angles': 270 - np.array(Di),
-        'scale': escalaprin,
-        'scale_units': 'xy',
-        'pivot': 'tail',
-        'color': 'b',
-        'linewidth': 2
-    }
-    for (xi, yi), q_params in zip(zip(xr, yr), quiver_params):
-        plt.quiver(xi, yi, *q_params)
-
-    nxp = [np.gradient(xlci) / np.hypot(np.gradient(ylci), np.gradient(xlci))]
-    nyp = [np.gradient(ylci) / np.hypot(np.gradient(ylci), np.gradient(xlci))]
-
-    # Pinta LC0
-    xlc0 = [perf["xon"] + perf["nx"] * perf["yc"] for perf in PERF]
-    ylc0 = [perf["yon"] + perf["ny"] * perf["yc"] for perf in PERF]
+    
+    # Pintamos dirección sin corregir
+    quiver_x = xr
+    quiver_y = yr
+    quiver_dir = 270 - Di
+    quiver_dx = quiver_scale * np.cos(np.deg2rad(quiver_dir))
+    quiver_dy = quiver_scale * np.sin(np.deg2rad(quiver_dir))
+    
+    plt.quiver(quiver_x, quiver_y, quiver_dx, quiver_dy, angles='xy', scale_units='xy', scale=1, color='b', linewidth=2)
+    
+    # Calculamos los vectores normales
+    nxp = np.gradient(xlci) / np.hypot(np.gradient(ylci), np.gradient(xlci))
+    nyp = np.gradient(ylci) / np.hypot(np.gradient(ylci), np.gradient(xlci))
+    
+    # Pintamos LC0
+    xlc0 = [perf['xon'] + perf['nx'] * perf['yc'] for perf in PERF]
+    ylc0 = [perf['yon'] + perf['ny'] * perf['yc'] for perf in PERF]
+    
     plt.plot(xlc0, ylc0, 'k--', linewidth=2)
-
-    # Pinta estructuras activas
-    if EA is not None:
-        tiposact = EA.keys()
+    
+    # Pintamos estructuras activas
+    if EA:
+        tiposact = list(EA.keys())
         for acttipo in tiposact:
             if acttipo == 'noest':
                 continue
-
-            nest = len(EA[acttipo])
-
-            for ii in range(nest):
-                index = EA[acttipo][ii]
+            
+            acttipo_estructuras = EA[acttipo]
+            for i in range(len(acttipo_estructuras)):
+                index = acttipo_estructuras[i]
                 ACT0 = ACT[index]
-
+                
                 if acttipo == 'dper':
-                    plt.plot(ACT0.X, ACT0.Y, linewidth=5, color=(126/255, 126/255, 129/255))
-                    Dest = ACT0.Dir[it]
-                    plt.quiver(ACT0.X[-1], ACT0.Y[-1], np.cos(np.deg2rad(270 - Dest)) * escalaprin, np.sin(np.deg2rad(270 - Dest)) * escalaprin, 0, 'b', linewidth=2)
+                    plt.plot(ACT0['X'], ACT0['Y'], linewidth=5, color=(126/255, 126/255, 129/255))
+                    
+                    Dest = ACT0['Dir'][it]
+                    quiver_x = ACT0['X'][-1]
+                    quiver_y = ACT0['Y'][-1]
+                    quiver_dir = 270 - Dest
+                    quiver_dx = quiver_scale * np.cos(np.deg2rad(quiver_dir))
+                    quiver_dy = quiver_scale * np.sin(np.deg2rad(quiver_dir))
+                    
+                    plt.quiver(quiver_x, quiver_y, quiver_dx, quiver_dy, angles='xy', scale_units='xy', scale=1, color='b', linewidth=2)
                 elif acttipo == 'dpar':
-                    plt.plot(ACT0.X, ACT0.Y, linewidth=5, color=(126/255, 126/255, 129/255))
-                    Dest = ACT0.Dir[it]
-                    plt.quiver(ACT0.X, ACT0.Y, np.cos(np.deg2rad(270 - Dest)) * escalaprin, np.sin(np.deg2rad(270 - Dest)) * escalaprin, 0, 'b', linewidth=2)
+                    plt.plot(ACT0['X'], ACT0['Y'], linewidth=5, color=(126/255, 126/255, 129/255))
+                    
+                    Dest = ACT0['Dir'][it]
+                    quiver_x = ACT0['X']
+                    quiver_y = ACT0['Y']
+                    quiver_dir = 270 - Dest
+                    quiver_dx = quiver_scale * np.cos(np.deg2rad(quiver_dir))
+                    quiver_dy = quiver_scale * np.sin(np.deg2rad(quiver_dir))
+                    
+                    plt.quiver(quiver_x, quiver_y, quiver_dx, quiver_dy, angles='xy', scale_units='xy', scale=1, color='b', linewidth=2)
                 elif acttipo == 'dperpar':
-                    plt.plot(ACT0.X, ACT0.Y, linewidth=5, color=(126/255, 126/255, 129/255))
-                    Dest = ACT0.Dir[it]
-                    if len(ACT0.X) == 4:
-                        plt.quiver([ACT0.X[-2], ACT0.X[-1]], [ACT0.Y[-2], ACT0.Y[-1]], np.cos(np.deg2rad(270 - Dest)) * escalaprin, np.sin(np.deg2rad(270 - Dest)) * escalaprin, 0, 'b', linewidth=2)
-                    elif len(ACT0.X) == 3:
-                        nxest0 = ACT0.X[0] - ACT0.X[1]
-                        nyest0 = ACT0.Y[0] - ACT0.Y[1]
+                    plt.plot(ACT0['X'], ACT0['Y'], linewidth=5, color=(126/255, 126/255, 129/255))
+                    
+                    Dest = ACT0['Dir'][it]
+                    
+                    if len(ACT0['X']) == 4:
+                        quiver_x = [ACT0['X'][-2], ACT0['X'][-1]]
+                        quiver_y = [ACT0['Y'][-2], ACT0['Y'][-1]]
+                        quiver_dir = 270 - Dest
+                        quiver_dx = quiver_scale * np.cos(np.deg2rad(quiver_dir))
+                        quiver_dy = quiver_scale * np.sin(np.deg2rad(quiver_dir))
+                        
+                        plt.quiver(quiver_x, quiver_y, quiver_dx, quiver_dy, angles='xy', scale_units='xy', scale=1, color='b', linewidth=2)
+                    elif len(ACT0['X']) == 3:
+                        nxest0 = ACT0['X'][0] - ACT0['X'][1]
+                        nyest0 = ACT0['Y'][0] - ACT0['Y'][1]
                         mod = np.hypot(nxest0, nyest0)
                         nxest = nxest0 / mod
                         nyest = nyest0 / mod
-                        angper = np.degrees(np.arctan2(nyest, nxest))
-                        nxest1 = ACT0.X[-1] - ACT0.X[-2]
-                        nyest1 = ACT0.Y[-1] - ACT0.Y[-2]
+                        angper = np.degrees(np.angle(nxest + nyest * 1j))
+                        
+                        nxest1 = ACT0['X'][-1] - ACT0['X'][-2]
+                        nyest1 = ACT0['Y'][-1] - ACT0['Y'][-2]
                         mod1 = np.hypot(nxest1, nyest1)
                         nxest2 = nxest1 / mod1
                         nyest2 = nyest1 / mod1
-                        angpar = np.degrees(np.arctan2(nyest2, nxest2))
-                        deltaest = np.rad2deg(np.arccos(np.cos(np.deg2rad(angper)) * np.cos(np.deg2rad(angpar)) + np.sin(np.deg2rad(angper)) * np.sin(np.deg2rad(angpar))))
-                        Destcar = 270 - Dest[0]
-                        deltaola = np.rad2deg(np.arccos(np.cos(np.deg2rad(angper)) * np.cos(np.deg2rad(Destcar)) + np.sin(np.deg2rad(angper)) * np.sin(np.deg2rad(Destcar))))
-                        dref = np.rad2deg(np.arccos(np.cos(np.deg2rad(angper)) * np.cos(np.deg2rad(Destcar)) + np.sin(np.deg2rad(angper)) * np.sin(np.deg2rad(Destcar))))
-
+                        angpar = np.degrees(np.angle(nxest2 + nyest2 * 1j))
+                        
+                        deltaest = (angper - angpar) % 360
+                        deltaola = (angper - Dest) % 360
+                        
+                        dref = (angper - Dest) % 360
+                        
                         if np.sign(deltaola) != np.sign(deltaest):
-                            plt.quiver([ACT0.X[-2], ACT0.X[-1]], [ACT0.Y[-2], ACT0.Y[-1]], np.cos(np.deg2rad(270 - Dest)) * escalaprin, np.sin(np.deg2rad(270 - Dest)) * escalaprin, 0, 'b', linewidth=2)
+                            quiver_x = [ACT0['X'][-2], ACT0['X'][-1]]
+                            quiver_y = [ACT0['Y'][-2], ACT0['Y'][-1]]
+                            quiver_dir = 270 - Dest
+                            quiver_dx = quiver_scale * np.cos(np.deg2rad(quiver_dir))
+                            quiver_dy = quiver_scale * np.sin(np.deg2rad(quiver_dir))
+                            
+                            plt.quiver(quiver_x, quiver_y, quiver_dx, quiver_dy, angles='xy', scale_units='xy', scale=1, color='b', linewidth=2)
                         else:
-                            plt.quiver(ACT0.X[-1], ACT0.Y[-1], np.cos(np.deg2rad(270 - Dest[-1])) * escalaprin, np.sin(np.deg2rad(270 - Dest[-1])) * escalaprin, 0, 'b', linewidth=2)
+                            quiver_x = ACT0['X'][-1]
+                            quiver_y = ACT0['Y'][-1]
+                            quiver_dir = 270 - Dest[-1]
+                            quiver_dx = quiver_scale * np.cos(np.deg2rad(quiver_dir))
+                            quiver_dy = quiver_scale * np.sin(np.deg2rad(quiver_dir))
+                            
+                            plt.quiver(quiver_x, quiver_y, quiver_dx, quiver_dy, angles='xy', scale_units='xy', scale=1, color='b', linewidth=2)
                 elif acttipo == 'drig':
-                    plt.plot(ACT0.X, ACT0.Y, linewidth=5, color=(126/255, 126/255, 129/255))
+                    # Resaltamos la LC en la zona rigidizada
+                    plt.plot(ACT0['X'], ACT0['Y'], linewidth=5, color=(126/255, 126/255, 129/255))
                 elif acttipo == 'nour':
-                    xnour0 = ACT0.X
-                    xnour = xnour0 + [xnour0[0]]
-                    ynour0 = ACT0.Y
-                    ynour = ynour0 + [ynour0[0]]
+                    xnour0 = ACT0['X']
+                    xnour = np.append(xnour0, xnour0[0])
+                    ynour0 = ACT0['Y']
+                    ynour = np.append(ynour0, ynour0[0])
+                    
                     plt.plot(xnour, ynour, linewidth=2, color=(232/255, 177/255, 19/255))
-
-    plt.axis('equal')
+    
+    plt.xlabel('Longitudinal, [m]')
+    plt.ylabel('Transversal, [m]')
+    plt.gca().set_aspect('equal', adjustable='box')
+    
+    # Ajusta los límites de acuerdo a los valores mínimos y máximos calculados
     plt.xlim(minx, maxx)
     plt.ylim(miny, maxy)
+    
     plt.show()
