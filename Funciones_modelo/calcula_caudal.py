@@ -8,9 +8,9 @@ def calcula_caudal(Hbd, Dbd, wbd, dx, EA, YLTi, ACT, PERF, it, Tipo):
     xzr = [p['xon'] + p['nx'] * (YLTi[idx] + w) for idx, (p, w) in enumerate(zip(PERF, wbd))]
     yzr = [p['yon'] + p['ny'] * (YLTi[idx] + w) for idx, (p, w) in enumerate(zip(PERF, wbd))]
 
-    Hcelda = 0.5 * (Hbd[1:] + Hbd[:-1])
+    Hcelda = 0.5 * (np.array(Hbd)[1:] + np.array(Hbd)[:-1])
 
-    alpha_wave0 = (270 - 0.5 * (Dbd[1:] + Dbd[:-1])) * np.pi / 180
+    alpha_wave0 = (270 - 0.5 * (np.array(Dbd)[1:] + np.array(Dbd)[:-1])) * np.pi / 180
     alpha_shoreline = np.arctan2(np.diff(ylt), np.diff(xlt)) - np.pi / 2
 
     alpha = np.angle(np.exp(1j * (alpha_wave0 - alpha_shoreline)))

@@ -21,4 +21,4 @@ def detecta_lcs_bcpun(PERF):
     else:
         PBC = np.array([lcs[0], lcs[-1]])
 
-    return PBC, PNL
+    return PBC.astype(int), PNL

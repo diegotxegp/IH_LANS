@@ -1,6 +1,6 @@
 import numpy as np
 
-def calcula_gradientes(Q, dx, PNL, PBC, bctype, bctypeval, PERF):
+def calcula_gradientes(Q, dx, PNL, PBC, bctype, bctypeval):
     Qall = np.empty(len(dx) + 1)
     Qall[1:-1] = Q
 

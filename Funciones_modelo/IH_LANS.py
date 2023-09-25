@@ -2,6 +2,7 @@ import os
 import numpy as np
 import datetime
 import matplotlib.pyplot as plt
+import warnings
 
 from Funciones_modelo.detecta_lcs_bcpun import detecta_lcs_bcpun
 from Funciones_modelo.casa_tobs_tcalc_lc import casa_tobs_tcalc_lc
@@ -177,7 +178,8 @@ def IH_LANS(INPUT):
     len_interval = len(np.where(np.mod(np.arange(1, len_t), toutp) == 0)[0]) + 1
     RES = {
         'YLT': np.full((len_interval, Ntr), np.nan),
-        't_output': np.full((len_interval, 1), np.nan)
+        't_output': np.full((len_interval, 1), np.nan),
+        'YCT': np.zeros((len_interval, Ntr))
     }
     RES['YLT'] = np.full((len_interval, Ntr), np.nan)
     YLT = [perf['yc'] for perf in PERF]
@@ -269,7 +271,7 @@ def IH_LANS(INPUT):
             for iou in posvar:
                 RES[output_list[iou]] = np.full((len_interval, output_length[iou]), np.nan)
 
-    count_output = 1
+    count_output = 0
     cdif = ['dper', 'dpar', 'dperpar']  # Estructuras que difractan
             
 
@@ -381,13 +383,13 @@ def IH_LANS(INPUT):
 
             escalaprin = 50
 
-            if it % tplot == 0 and plott == 1:
+            if (it+1) % tplot == 0 and plott == 1:
                 pintainstante(PERF, YLTi + YCTi, ACT, EA, Hbd, D0, Dbd, wbd, t, it, escalaprin)
                 plt.draw()
                 plt.clf()
 
             # Calculamos cshore M&D
-            Yct, posero, Yeq = calcula_cshore_md(YCTi, wbd, Hbd, SSi, ATi, kacr, kero, dy0, PLCS_CS, dt, [PERF.Berma])
+            Yct, posero, Yeq = calcula_cshore_md(YCTi, wbd, Hbd, SSi, ATi, kacr, kero, dy0, PLCS_CS, dt, berma)
 
             # Actualizamos
             YLTi = corrige_instante_inicial_escollera(YLTi, ACT, EA, t, it)
@@ -400,7 +402,8 @@ def IH_LANS(INPUT):
             dQdx, Qbc = calcula_gradientes(Qc, dx, PNL, PBC, bctype, bctypeval)
 
             # Verifica Courant
-            tmin = verifica_courant(dx, Qbc, [PERF.dc] + [PERF.Berma], kcerc)
+            dc = [perf["dc"] for perf in PERF]
+            tmin = verifica_courant(dx, Qbc, dc + berma, kcerc)
             if tmin < dt:
                 npartes = min(100, int(1 / tmin / fcourant))
                 warnings.warn(f'Se viola el Courant, Tmin = {tmin:.2f}\nSubdividimos en {npartes} el step')
@@ -409,7 +412,7 @@ def IH_LANS(INPUT):
                     Q, _ = calcula_caudal(Hbd, Dbd, wbd, dx, EA, Yltii, ACT, PERF, it, tipotrans)
                     Qc = reparto_bypass(Q, EA, ACT, PERF, Yltii, wbd, it)
                     dQdx, Qbc = calcula_gradientes(Qc, dx, PNL, PBC, bctype, bctypeval)
-                    Yltii, _ = calcula_lc(Yltii, dt, Dc + Ber, kcerc / npartes, dQdx, Qbc, dx, ACT, EA)
+                    Yltii, _ = calcula_lc(Yltii, dt, np.array(Dc) + np.array(Ber), np.array(kcerc) / npartes, dQdx, Qbc, dx, ACT, EA)
                     YLTi = Yltii
             else:
                 # No se viola el Courant
@@ -421,13 +424,17 @@ def IH_LANS(INPUT):
 
             # Asimilación de observaciones
             if data_asim_l and not data_asim_lc:
-                Ylt, kcerc, vlt, saltoYlt, DALCSi = kalman_longitudinal(Ylt, kcerc, vlt, dQdx, dt, DA(PLCS), it, PLCS, Dc, Ber, sigmaK)
-                DA(PLCS) = DALCSi
+                da = [DA[plcs] for plcs in PLCS]
+                Ylt, kcerc, vlt, saltoYlt, DALCSi = kalman_longitudinal(Ylt, kcerc, vlt, dQdx, dt, da, it, PLCS, Dc, Ber, sigmaK)
+                for i,value in enumerate(PLCS):
+                    DA[value] = DALCSi[i]
 
             if data_asim_c and not data_asim_lc:
-                Yct, kacr, kero, saltoYct, DACSi, dy0 = kalman_transversal(Yct, YCTi, Yeq, kacr, kero, dt, DA(PLCS_CS), it, PLCS_CS, posero, dy0)
-                DA(PLCS_CS) = DACSi
-                DY0(PLCS_CS) = dy0
+                da = [DA[plcs] for plcs in PLCS]
+                Yct, kacr, kero, saltoYct, DACSi, dy0 = kalman_transversal(Yct, YCTi, Yeq, kacr, kero, dt, da, it, PLCS_CS, posero, dy0)
+                for i, value in enumerate(PLCS_CS):
+                    DA[value] = DACSi[i]
+                    DY0[value] = dy0[i]
 
             if data_asim_lc:
                 Ylt1, kcerc1, vlt1, saltoYlt1, DALCS1, Yct1, kacr1, kero1, saltoYct1, dy01 = kalman_longitudinal_transversal(
@@ -436,7 +443,8 @@ def IH_LANS(INPUT):
                 kcerc = kcerc1
                 vlt = vlt1
                 saltoYlt = saltoYlt1
-                DA(PLCS) = DALCS1
+                for i,value in enumerate(PLCS):
+                    DA[value] = DALCS1[i]
                 kacr = kacr1
                 kero = kero1
                 saltoYct = saltoYct1
