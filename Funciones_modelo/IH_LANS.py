@@ -2,7 +2,6 @@ import os
 import numpy as np
 import datetime
 import matplotlib.pyplot as plt
-import warnings
 
 from Funciones_modelo.detecta_lcs_bcpun import detecta_lcs_bcpun
 from Funciones_modelo.casa_tobs_tcalc_lc import casa_tobs_tcalc_lc
@@ -406,7 +405,7 @@ def IH_LANS(INPUT):
             tmin = verifica_courant(dx, Qbc, dc + berma, kcerc)
             if tmin < dt:
                 npartes = min(100, int(1 / tmin / fcourant))
-                warnings.warn(f'Se viola el Courant, Tmin = {tmin:.2f}\nSubdividimos en {npartes} el step')
+                print(f"Se viola el Courant, Tmin = {tmin:.2f}\nSubdividimos en {npartes} el step")
                 for ipartes in range(npartes):
                     Yltii = YLTi
                     Q, _ = calcula_caudal(Hbd, Dbd, wbd, dx, EA, Yltii, ACT, PERF, it, tipotrans)

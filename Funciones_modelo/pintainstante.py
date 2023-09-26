@@ -13,11 +13,9 @@ def pintainstante(PERF, YLTi, ACT, EA, Hi, D0, Di, wi, t, it, escalaprin):
     # Pintamos LC y mar con área
     politierrax = [perf['xon'] for perf in PERF] + list(reversed(xlci)) + [PERF[0]['xon']]
     politierray = [perf['yon'] for perf in PERF] + list(reversed(ylci)) + [PERF[0]['yon']]
-
-    politierra = zip(politierrax,politierray)
     
-    tierra = plt.Polygon([(1,2),(3,4)], facecolor=(247 / 255, 243 / 255, 141 / 255), edgecolor='none')
-    plt.gca().add_patch(tierra)
+    #tierra = plt.Polygon([(1,2),(3,4)], facecolor=(247 / 255, 243 / 255, 141 / 255), edgecolor='none')
+    #plt.gca().add_patch(tierra)
     
     minx = 1e9
     maxx = -1e9
@@ -47,17 +45,22 @@ def pintainstante(PERF, YLTi, ACT, EA, Hi, D0, Di, wi, t, it, escalaprin):
     quiver_scale = escalaprin
     quiver_x = [perf['xof'] for perf in PERF]
     quiver_y = [perf['yof'] for perf in PERF]
-    quiver_dir = 270 - D0
+    quiver_dir = 270 - np.array(D0)
     quiver_dx = quiver_scale * np.cos(np.deg2rad(quiver_dir))
     quiver_dy = quiver_scale * np.sin(np.deg2rad(quiver_dir))
     
     plt.quiver(quiver_x, quiver_y, quiver_dx, quiver_dy, angles='xy', scale_units='xy', scale=1, color='k', linewidth=2)
     
     # Pintamos ZR0
-    xr = [perf['xon'] + perf['nx'] * (wi + YLTi) for perf in PERF]
-    yr = [perf['yon'] + perf['ny'] * (wi + YLTi) for perf in PERF]
-    xr2 = [perf['xon'] + perf['nx'] * (1.25 * wi + YLTi) for perf in PERF]
-    yr2 = [perf['yon'] + perf['ny'] * (1.25 * wi + YLTi) for perf in PERF]
+    xon = [perf['xon'] for perf in PERF]
+    nx = [perf['nx'] for perf in PERF]
+    yon = [perf['yon'] for perf in PERF]
+    ny = [perf['ny'] for perf in PERF]
+
+    xr = np.array(xon) + np.array(nx) * (np.array(wi) + YLTi)
+    yr = np.array(yon) + np.array(ny) * (np.array(wi) + YLTi)
+    xr2 = np.array(xon) + np.array(nx) * (1.25 * np.array(wi) + YLTi)
+    yr2 = np.array(yon) + np.array(ny) * (1.25 * np.array(wi) + YLTi)
     
     plt.plot(xr, yr, 'b--', linewidth=2)
     plt.plot(xr, yr, 'bo', markerfacecolor='b')
@@ -66,7 +69,7 @@ def pintainstante(PERF, YLTi, ACT, EA, Hi, D0, Di, wi, t, it, escalaprin):
     # Pintamos dirección sin corregir
     quiver_x = xr
     quiver_y = yr
-    quiver_dir = 270 - Di
+    quiver_dir = 270 - np.array(Di)
     quiver_dx = quiver_scale * np.cos(np.deg2rad(quiver_dir))
     quiver_dy = quiver_scale * np.sin(np.deg2rad(quiver_dir))
     
