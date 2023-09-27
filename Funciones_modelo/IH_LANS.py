@@ -623,3 +623,6 @@ def IH_LANS(INPUT):
         if "DYNP" in INPUT:
             del INPUT["DYNP"]
         np.savez(namesave, RES=RES, INPUT=INPUT)
+
+
+    return RES

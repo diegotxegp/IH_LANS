@@ -30,7 +30,7 @@ def pintainstante(PERF, YLTi, ACT, EA, Hi, D0, Di, wi, t, it, escalaprin):
         yon = PERF[i]['yon']
         yof = PERF[i]['yof']
         
-        plt.plot([xon, xof], [yon, yof], 'k.:', linewidth=2)
+        plt.plot([xon, xof], [yon, yof], 'k.:', linewidth=0.5)
         
         if xon < minx or xof < minx:
             minx = min(xon, xof)

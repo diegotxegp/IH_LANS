@@ -180,14 +180,13 @@ INPUT['toutp'] = 1
 # Ejecutamos el modelo
 RES = IH_LANS(INPUT)
 
-# Graficamos RES.YLT[:,100]
-plt.plot(RES['YLT'][:, 100])
-plt.hold(True)
+# Graficamos RES.YLT[:,99]
+plt.plot(RES['YLT'][:, 99])
 
-# Graficamos RES.YLT[:,100] + RES.YCT[:,100]
-plt.plot(RES['YLT'][:, 100] + RES['YCT'][:, 100])
+# Graficamos RES.YLT[:,99] + RES.YCT[:,99]
+plt.plot(RES['YLT'][:, 99] + RES['YCT'][:, 99])
 
-# Graficamos RES.YCT[:,[1, 50, 100]]
+# Graficamos RES.YCT[:,[0, 49, 99]]
 plt.plot(RES['YCT'][:, [0, 49, 99]])
 
 plt.show()
