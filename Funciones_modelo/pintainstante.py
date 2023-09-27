@@ -1,5 +1,6 @@
 import numpy as np
 import matplotlib.pyplot as plt
+import time
 
 from Funciones_modelo.pinta_perfiles import pinta_perfiles
 
@@ -188,3 +189,6 @@ def pintainstante(PERF, YLTi, ACT, EA, Hi, D0, Di, wi, t, it, escalaprin):
     plt.ylim(miny, maxy)
     
     plt.show()
+
+    time.sleep(2)
+    plt.close('all')

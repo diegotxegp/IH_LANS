@@ -4,6 +4,7 @@ import pandas as pd
 import matplotlib.pyplot as plt
 from datetime import datetime, timedelta
 import scipy.io as sio
+import time
 
 from Generales.wmoore_calc import wmoore_calc
 from Funciones_modelo.calcula_linea_xy import calcula_linea_xy
@@ -104,6 +105,9 @@ pinta_perfiles(PERF)
 
 plt.show()
 
+time.sleep(2)
+plt.close('all')
+
 
 # Definir estructuras
 ACT = []
@@ -192,9 +196,9 @@ plt.plot(RES['YCT'][:, [0, 49, 99]])
 plt.show()
 
 
-kcerc = 40
-kacr = 3.89E-3
-kero = 1.74E-2
+kcerc = [40]
+kacr = [3.89E-3]
+kero = [1.74E-2]
 plott = 0
 
 # Copia los valores de INPUT en INPUT2 y actualiza los parámetros relevantes
@@ -208,12 +212,12 @@ INPUT2['plott'] = plott
 RES2 = IH_LANS(INPUT2)
 
 # Grafica los resultados
-plt.plot(RES['YLT'][:, 100], label='RES.YLT[:,100]')
-plt.plot(RES2['YLT'][:, 100], label='RES2.YLT[:,100]')
-plt.plot(RES['YLT'][:, 100] + RES['YCT'][:, 100], label='RES.YLT[:,100] + RES.YCT[:,100]')
-plt.plot(RES2['YLT'][:, 100] + RES2['YCT'][:, 100], label='RES2.YLT[:,100] + RES2.YCT[:,100]')
-plt.plot(RES['YCT'][:, 100], label='RES.YCT[:,100]')
-plt.plot(RES2['YCT'][:, 100], label='RES2.YCT[:,100]')
+plt.plot(RES['YLT'][:, 99], label='RES.YLT[:,99]')
+plt.plot(RES2['YLT'][:, 99], label='RES2.YLT[:,99]')
+plt.plot(RES['YLT'][:, 99] + RES['YCT'][:, 99], label='RES.YLT[:,99] + RES.YCT[:,99]')
+plt.plot(RES2['YLT'][:, 99] + RES2['YCT'][:, 99], label='RES2.YLT[:,99] + RES2.YCT[:,99]')
+plt.plot(RES['YCT'][:, 99], label='RES.YCT[:,99]')
+plt.plot(RES2['YCT'][:, 99], label='RES2.YCT[:,99]')
 
 # Añade leyendas y muestra el gráfico
 plt.legend()

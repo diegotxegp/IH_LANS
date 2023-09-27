@@ -31,4 +31,4 @@ def pinta_perfiles(PERF):
         ym = (PERF[i]['yon'] + PERF[i]['yof']) / 2
         # plt.text(xm, ym, str(i))  # Descomentar para etiquetar los perfiles
     plt.gca().set_aspect('equal', adjustable='box')
-    plt.show()
+    
