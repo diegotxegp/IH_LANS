@@ -12,15 +12,17 @@ from Funciones_modelo.calcula_nbati import calcula_nbati
 from Funciones_modelo.pinta_perfiles import pinta_perfiles
 from Funciones_modelo.IH_LANS import IH_LANS
 
+
 ## SET-UP DEL MODELO
 
 # Tiempo del análisis
-t0 = datetime(1995, 1, 1)
-tfin = datetime(2020, 1, 1)
+tref = datetime(1,1,1)
+t0 = datetime(1995, 1, 1) - tref
+tfin = datetime(2020, 1, 1) - tref
 dt = 1 # Intervalo de tiempo en horas
 
 # Lista de tiempos entre ambas fecha cada hora
-t = [i for i in range((tfin - t0).days + 1)]
+t = [i for i in range(t0.days, tfin.days+1, dt)]
 
 
 ## Perfiles

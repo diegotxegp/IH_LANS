@@ -1,12 +1,19 @@
 import numpy as np
 import matplotlib.pyplot as plt
 import time
+from datetime import datetime, timedelta
 
 from Funciones_modelo.pinta_perfiles import pinta_perfiles
 
-def pintainstante(PERF, YLTi, ACT, EA, Hi, D0, Di, wi, t, it, escalaprin):    
+def pintainstante(PERF, YLTi, ACT, EA, Hi, D0, Di, wi, t, it, escalaprin):
+
+    tref = datetime(1,1,1)
+    delta = timedelta(t[it])
+
+    instante = tref + delta
+
     # Pintamos instante de lc
-    plt.title(str(t[it]))
+    plt.title(str(instante))
     
     xlci = [perf['xon'] + perf['nx'] * YLTi for perf in PERF]
     ylci = [perf['yon'] + perf['ny'] * YLTi for perf in PERF]
