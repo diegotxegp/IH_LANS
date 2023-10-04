@@ -13,14 +13,19 @@ def pintainstante(PERF, YLTi, ACT, EA, Hi, D0, Di, wi, t, it, escalaprin):
     instante = tref + delta
 
     # Pintamos instante de lc
-    plt.title(str(instante))
+    plt.title(str(instante.date()))
     
-    xlci = [perf['xon'] + perf['nx'] * YLTi for perf in PERF]
-    ylci = [perf['yon'] + perf['ny'] * YLTi for perf in PERF]
+    xon = [perf['xon'] for perf in PERF]
+    nx = [perf['nx'] for perf in PERF]
+    yon = [perf['yon'] for perf in PERF]
+    ny = [perf['ny'] for perf in PERF]
+
+    xlci = xon + nx * YLTi
+    ylci = yon + ny * YLTi
     
     # Pintamos LC y mar con área
-    politierrax = [perf['xon'] for perf in PERF] + list(reversed(xlci)) + [PERF[0]['xon']]
-    politierray = [perf['yon'] for perf in PERF] + list(reversed(ylci)) + [PERF[0]['yon']]
+    politierrax = xon + list(reversed(xlci)) + xon[0]
+    politierray = yon + list(reversed(ylci)) + yon[0]
     
     #tierra = plt.Polygon([(1,2),(3,4)], facecolor=(247 / 255, 243 / 255, 141 / 255), edgecolor='none')
     #plt.gca().add_patch(tierra)
@@ -192,8 +197,8 @@ def pintainstante(PERF, YLTi, ACT, EA, Hi, D0, Di, wi, t, it, escalaprin):
     plt.gca().set_aspect('equal', adjustable='box')
     
     # Ajusta los límites de acuerdo a los valores mínimos y máximos calculados
-    plt.xlim(minx, maxx)
-    plt.ylim(miny, maxy)
+    plt.xlim(minx-50, maxx+50)
+    plt.ylim(miny-50, maxy+500)
     
     plt.show()
 

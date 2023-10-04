@@ -2,7 +2,7 @@ import os
 import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
-from datetime import datetime, timedelta
+from datetime import datetime
 import scipy.io as sio
 import time
 
@@ -22,7 +22,7 @@ tfin = datetime(2020, 1, 1) - tref
 dt = 1 # Intervalo de tiempo en horas
 
 # Lista de tiempos entre ambas fecha cada hora
-t = [i for i in range(t0.days, tfin.days+1, dt)]
+t = [i for i in range(t0.days, tfin.days + 1, dt)]
 
 
 ## Perfiles
