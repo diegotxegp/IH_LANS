@@ -105,10 +105,10 @@ plt.plot(xlc, ylc)
 
 pinta_perfiles(PERF)
 
-plt.show()
+mng = plt.get_current_fig_manager()
+mng.window.state('zoomed')
 
-time.sleep(2)
-plt.close('all')
+plt.show()
 
 
 # Definir estructuras

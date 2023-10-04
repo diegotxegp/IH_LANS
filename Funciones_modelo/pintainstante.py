@@ -200,7 +200,9 @@ def pintainstante(PERF, YLTi, ACT, EA, Hi, D0, Di, wi, t, it, escalaprin):
     plt.xlim(minx-50, maxx+50)
     plt.ylim(miny-50, maxy+500)
     
+    mng = plt.get_current_fig_manager()
+    mng.window.state('zoomed')
     plt.show()
 
-    time.sleep(2)
+    time.sleep(1)
     plt.close('all')
