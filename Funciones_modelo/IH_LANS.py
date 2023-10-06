@@ -135,7 +135,7 @@ def IH_LANS(INPUT):
 
     # verificamos si hay datos para asimilar
     if data_asim_l or data_asim_c or data_asim_lc:
-        if data_asim_l and not data_asim_c and hasattr(PERF[0], 'rP0') and hasattr(PERF[0], 'rQ') and hasattr(PERF[0], 'R') and hasattr(PERF[0], 'date_obs') and hasattr(PERF[0], 'Y_obs_lt'):
+        if data_asim_l and not data_asim_c and 'rP0' in PERF[0] and 'rQ' in PERF[0] and 'R' in PERF[0] and 'date_obs' in PERF[0] and 'Y_obs_lt' in PERF[0]:
             print('Preparando asimilación longshore')
             sigmaK = INPUT.get('sigmaK', 0.5)
             DA = casa_tobs_tcalc_lc(t, PERF, data_asim_l, data_asim_c, data_asim_lc, sigmaK=sigmaK, kcerc=kcerc)
@@ -143,14 +143,14 @@ def IH_LANS(INPUT):
             for key in ['date_obs', 'Y_obs_lt', 'rP0', 'rQ', 'R']:
                 PERF[0].pop(key, None)
             # DALCS = DA[PLCS]
-        elif data_asim_c and not data_asim_l and hasattr(PERF[0], 'rPero0_c') and hasattr(PERF[0], 'rQero_c') and hasattr(PERF[0], 'R_c') and hasattr(PERF[0], 'date_obs') and hasattr(PERF[0], 'Y_obs_ct'):
+        elif data_asim_c and not data_asim_l and 'rPero0_c' in PERF[0] and 'rQero_c' in PERF[0] and 'R_c' in PERF[0] and 'date_obs' in PERF[0] and 'Y_obs_ct' in PERF[0]:
             print('Preparando asimilación cross-shore')
             DA = casa_tobs_tcalc_lc(t, PERF, data_asim_l, data_asim_c, data_asim_lc, kacr=kacr, kero=kero)
             for key in ['date_obs', 'Y_obs_ct', 'rPero0_c', 'rPacr0_c', 'rQero_c', 'rQacr_c', 'R_c']:
                 PERF[0].pop(key, None)
             # DACS = DA[PLCS_CS]
-        elif (data_asim_lc or (data_asim_c and data_asim_l)) and hasattr(PERF[0], 'rPero0_c') and hasattr(PERF[0], 'rQero_c') and hasattr(PERF[0], 'rPacr0_c') and hasattr(PERF[0], 'rQacr_c') and hasattr(PERF[0], 'R_c') and hasattr(PERF[0], 'date_obs') and hasattr(PERF[0], 'Y_obs_ct') and \
-                hasattr(PERF[0], 'rP0') and hasattr(PERF[0], 'rQ') and hasattr(PERF[0], 'R') and hasattr(PERF[0], 'Y_obs_lt'):
+        elif (data_asim_lc or (data_asim_c and data_asim_l)) and 'rPero0_c' in PERF[0] and 'rQero_c' in PERF[0] and 'rPacr0_c' in PERF[0] and 'rQacr_c' in PERF[0] and 'R_c' in PERF[0] and 'date_obs' in PERF[0] and 'Y_obs_ct' in PERF[0] and \
+                'rP0' in PERF[0] and 'rQ' in PERF[0] and 'R' in PERF[0] and 'Y_obs_lt' in PERF[0]:
             print('Preparando asimilación longshore y cross-shore')
             sigmaK = INPUT.get('sigmaK', 0.5)
             DA = casa_tobs_tcalc_lc(t, PERF, data_asim_l, data_asim_c, data_asim_lc, sigmaK=sigmaK, kcerc=kcerc, kacr=kacr, kero=kero)

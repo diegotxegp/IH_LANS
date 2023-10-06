@@ -202,7 +202,7 @@ def pintainstante(PERF, YLTi, ACT, EA, Hi, D0, Di, wi, t, it, escalaprin):
     
     mng = plt.get_current_fig_manager()
     mng.window.state('zoomed')
-    plt.show()
+    #plt.show()
 
     time.sleep(1)
     plt.close('all')

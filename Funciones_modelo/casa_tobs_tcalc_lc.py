@@ -1,4 +1,5 @@
 import math
+import numpy as np
 
 from Funciones_modelo.ensambla_lc import ensambla_lc
 
@@ -13,18 +14,24 @@ def casa_tobs_tcalc_lc(t, PERF, data_asim_l, data_asim_c, data_asim_lc, **kwargs
     DA = []
     for ip in range(len(PERF)):
         tobs = PERF[ip]['date_obs']
-        posin_t = [i for i, obs in enumerate(tobs) if t[0] < obs <= t[-1]]
+        posin_t = np.array([i for i, obs in enumerate(tobs) if t[0] < obs <= t[-1]])
         tasim = [tobs[i] for i in posin_t]
         nasim = []
         for i in range(len(tasim)):
             tasimi = tasim[i]
             possup = [j for j, time in enumerate(t) if time >= tasimi]
             nasim.append(min(possup))
-        nasim_unique, pos_unique = list(zip(*sorted(set(nasim), key=nasim.index)))
+
+        # escogemos sólo valores únicos
+        pos_unique = []
+        nasim_unique = []
+        for pos, value in enumerate(list(set(nasim))):
+            pos_unique.append(pos)
+            nasim_unique.append(value)
 
         DA_entry = {
-            'tasim': list(tasim[pos_unique]),
-            'nasim': list(nasim_unique),
+            'tasim': np.array([element[0] for element in tasim])[pos_unique],
+            'nasim': np.array(nasim_unique),
             'itmax': max(nasim_unique),
             'pos': 1,
             'stop': 0,
@@ -42,8 +49,8 @@ def casa_tobs_tcalc_lc(t, PERF, data_asim_l, data_asim_c, data_asim_lc, **kwargs
             Q = PERF[ip]['rQ'] ** 2
             P0[1, 1] = (1 / sigmaK * math.log((kcerc[ip] + PERF[ip]['rP0'][1, 1]) / kcerc[ip])) ** 2
             Q[1, 1] = (1 / sigmaK * math.log((kcerc[ip] + PERF[ip]['rQ'][1, 1]) / kcerc[ip])) ** 2
-            DA_entry['P0'] = P0.tolist()
-            DA_entry['Q'] = Q.tolist()
+            DA_entry['P0'] = P0
+            DA_entry['Q'] = Q
             DA_entry['R'] = PERF[ip]['R']
 
         if data_asim_c:
@@ -81,5 +88,8 @@ def casa_tobs_tcalc_lc(t, PERF, data_asim_l, data_asim_c, data_asim_lc, **kwargs
             DA_entry['R_lc'] = PERF[ip]['R_c'] + PERF[ip]['R']
 
         DA.append(DA_entry)
+        print("Nuevo DA_entry")
+        print(ip)
+        print((len(PERF)))
 
     return DA
