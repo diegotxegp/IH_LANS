@@ -25,7 +25,7 @@ def casa_tobs_tcalc_lc(t, PERF, data_asim_l, data_asim_c, data_asim_lc, **kwargs
         # escogemos sólo valores únicos
         pos_unique = []
         nasim_unique = []
-        for pos, value in enumerate(list(set(nasim))):
+        for pos, value in enumerate(sorted(set(nasim))):
             pos_unique.append(pos)
             nasim_unique.append(value)
 
@@ -39,6 +39,8 @@ def casa_tobs_tcalc_lc(t, PERF, data_asim_l, data_asim_c, data_asim_lc, **kwargs
             'stop_l': 0,
             'pos_c': 1,
             'stop_c': 0,
+            'pos_lc': 1,
+            'stop_lc': 0
         }
 
         if data_asim_l:
