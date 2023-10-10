@@ -4,6 +4,11 @@ from Funciones_cshore.calcula_jacobiano_transversal import calcula_jacobiano_tra
 from Funciones_cshore.filtro_kalman_transversal import filtro_kalman_transversal
 
 def kalman_transversal(Yct, YCTi, Yeq, kacr, kero, dt, DACS, it, PLCS_CS, posero, dy0):
+
+    kero = np.array(kero)
+    kacr = np.array(kacr)
+    PLCS_CS = np.array(PLCS_CS)
+
     estado_ant = np.vstack([Yct[PLCS_CS], kero[PLCS_CS] * posero, Yct[PLCS_CS], kacr[PLCS_CS] * (1 - posero), dy0])
     Jacobito = calcula_jacobiano_transversal(Yeq, YCTi, posero, kacr, kero, PLCS_CS, dt, dy0)
     estado_post, DACSi, saltoYct = filtro_kalman_transversal(estado_ant, Jacobito, DACS, it, posero, Yct)

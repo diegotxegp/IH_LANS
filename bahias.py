@@ -172,8 +172,8 @@ INPUT['bctypeval'] = np.array([[0, 0], [0, 0]])  # Por defecto Dirichlet!! Q=0 e
 INPUT['fcourant'] = 0.1  # Entre 0 y 1; 1 cumple courant estricto
 
 # Datos cross-shore
-INPUT['kacr'] = [3.89E-3 * 3]
-INPUT['kero'] = [1.74e-2 * 8]
+INPUT['kacr'] = np.array([3.89E-3 * 3])
+INPUT['kero'] = np.array([1.74e-2 * 8])
 INPUT['tstab'] = 365 * 2  # Tiempo de estabilización (inicialización modelo)
 INPUT['tcent'] = 365 * 5  # Tiempo tras el tiempo de estabilización en el que se calcula dy0
 
@@ -198,9 +198,9 @@ plt.plot(RES['YCT'][:, [0, 49, 99]])
 plt.show()
 
 
-kcerc = [40]
-kacr = [3.89E-3]
-kero = [1.74E-2]
+kcerc = np.array([40])
+kacr = np.array([3.89E-3])
+kero = np.array([1.74E-2])
 plott = 0
 
 # Copia los valores de INPUT en INPUT2 y actualiza los parámetros relevantes
@@ -222,7 +222,7 @@ plt.plot(RES['YCT'][:, 99], label='RES.YCT[:,99]')
 plt.plot(RES2['YCT'][:, 99], label='RES2.YCT[:,99]')
 
 # Añade leyendas y muestra el gráfico
-plt.legend()
+#plt.legend()
 plt.show()
 
 

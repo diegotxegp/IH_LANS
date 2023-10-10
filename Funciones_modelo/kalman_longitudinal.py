@@ -4,6 +4,12 @@ from Funciones_modelo.calcula_jacobiano_longitudinal import calcula_jacobiano_lo
 from Funciones_modelo.filtro_kalman_longitudinal import filtro_kalman_longitudinal
 
 def kalman_longitudinal(Ylt, kcerc, vlt, dQdx, dt, DALCS, it, PLCS, Dc, Ber, sigmaK):
+
+    kcerc = np.array(kcerc)
+    vlt = np.array(vlt)
+    Dc = np.array(Dc)
+    Ber = np.array(Ber)
+
     estado_ant = np.array([Ylt[PLCS], kcerc[PLCS], vlt[PLCS]])
     Jacobito = calcula_jacobiano_longitudinal(kcerc[PLCS], Dc[PLCS] + Ber[PLCS], dQdx[PLCS], dt, sigmaK)
     estado_post, DALCS = filtro_kalman_longitudinal(estado_ant, Jacobito, DALCS, it)

@@ -39,14 +39,14 @@ def IH_LANS(INPUT):
     # Identificamos inputs/cargamos valores por defecto
     gamma = INPUT.get('gamma', 0.55)
     toutp = INPUT.get('toutp', 24 * 30)
-    kcerc = INPUT.get('kcerc', [200] * len(INPUT['PERF']))
+    kcerc = INPUT.get('kcerc', np.array([200]) * len(INPUT['PERF']))
     fcourant = INPUT.get('fcourant', 0.5)
-    kacr = INPUT.get('kacr', [3.89E-3] * len(INPUT['PERF']))
-    kero = INPUT.get('kero', [1.74e-2] * len(INPUT['PERF']))
+    kacr = INPUT.get('kacr', np.array([3.89E-3]) * len(INPUT['PERF']))
+    kero = INPUT.get('kero', np.array([1.74e-2]) * len(INPUT['PERF']))
     tstab = INPUT.get('tstab', 365 * 2)
     tcent = INPUT.get('tcent', 365 * 5)
-    vlt = INPUT.get('vlt', [0] * len(INPUT['PERF']))
-    RSLR = INPUT.get('RSLR', [0] * len(INPUT['PERF']))
+    vlt = INPUT.get('vlt', np.array([0]) * len(INPUT['PERF']))
+    RSLR = INPUT.get('RSLR', np.array([0]) * len(INPUT['PERF']))
     tipotrans = INPUT.get('tipotrans', 'CERC')
     data_asim_l = INPUT.get('data_asim_l', 0)
     data_asim_c = INPUT.get('data_asim_c', 0)
@@ -129,8 +129,8 @@ def IH_LANS(INPUT):
     DYN = INPUT['DYN']
     ACT = INPUT['ACT']
     t = INPUT['t']
-    Dc = [p['dc'] for p in PERF]
-    Ber = [p['Berma'] for p in PERF]
+    Dc = np.array([p['dc'] for p in PERF])
+    Ber = np.array([p['Berma'] for p in PERF])
     dt = INPUT['dt']
 
     # verificamos si hay datos para asimilar
@@ -300,9 +300,9 @@ def IH_LANS(INPUT):
     ## Inicializamos Cshore calculado posicion equilibrio
     # Usamos dinámicas sin propagar a rotura
     # Buscamos perfiles a calcular
-    adean = [perf["Adean"][0] for perf in PERF]
-    berma = [perf["Berma"] for perf in PERF]
-    nbati = [perf["nbati"] for perf in PERF]
+    adean = np.array([perf["Adean"][0] for perf in PERF])
+    berma = np.array([perf["Berma"] for perf in PERF])
+    nbati = np.array([perf["nbati"] for perf in PERF])
     _, dy00, _ = millerydean_dy0(tstab, tcent, adean, kacr, kero, gamma, DYN, dinperf, t, berma, dt, PLCS_CS, calcularotura, nbati, refNMM, gamma)
     dy0 = -dy00
     # dy0 = np.zeros_like(dy0)  # Comentado porque no se usa en el código
@@ -310,7 +310,7 @@ def IH_LANS(INPUT):
 
 
     # Cuerpo del modelo
-    YLTi = [perf["yc"] for perf in PERF]
+    YLTi = np.array([perf["yc"] for perf in PERF])
     YCTi = np.zeros(len(YLTi))
     DY0 = np.zeros(len(YLTi))
 
@@ -319,7 +319,7 @@ def IH_LANS(INPUT):
             h = plt.figure()
             h.set_size_inches(18.12, 6.66)
 
-        nbati0 = [perf["nbati"] for perf in PERF]
+        nbati0 = np.array([perf["nbati"] for perf in PERF])
 
         for it in range(len(t) - 1):
             if inthidromorfo == 1:  # con interacción hidromorfo
@@ -401,7 +401,7 @@ def IH_LANS(INPUT):
             dQdx, Qbc = calcula_gradientes(Qc, dx, PNL, PBC, bctype, bctypeval)
 
             # Verifica Courant
-            dc = [perf["dc"] for perf in PERF]
+            dc = np.array([perf["dc"] for perf in PERF])
             tmin = verifica_courant(dx, Qbc, dc + berma, kcerc)
             if tmin < dt:
                 npartes = min(100, int(1 / tmin / fcourant))
@@ -411,25 +411,25 @@ def IH_LANS(INPUT):
                     Q, _ = calcula_caudal(Hbd, Dbd, wbd, dx, EA, Yltii, ACT, PERF, it, tipotrans)
                     Qc = reparto_bypass(Q, EA, ACT, PERF, Yltii, wbd, it)
                     dQdx, Qbc = calcula_gradientes(Qc, dx, PNL, PBC, bctype, bctypeval)
-                    Yltii, _ = calcula_lc(Yltii, dt, np.array(Dc) + np.array(Ber), np.array(kcerc) / npartes, dQdx, Qbc, dx, ACT, EA)
+                    Yltii, _ = calcula_lc(Yltii, dt, Dc + Ber, np.array(kcerc) / npartes, dQdx, Qbc, dx, ACT, EA)
                     YLTi = Yltii
             else:
                 # No se viola el Courant
-                Yltii, kcerc = calcula_lc(YLTi, dt, np.array(Dc) + np.array(Ber), np.array(kcerc), dQdx, Qbc, dx, ACT, EA)
-                YLTi = Yltii
+                # calcula avance de la línea de costa considerando estructuras
+                Yltii, kcerc = calcula_lc(YLTi, dt, Dc + Ber, kcerc, dQdx, Qbc, dx, ACT, EA)
 
             # Aplico tasas y tendencias
             Ylt = aplica_tasa(Yltii, ACT, EA, vlt, RSLR)
 
             # Asimilación de observaciones
             if data_asim_l and not data_asim_lc:
-                da = [DA[plcs] for plcs in PLCS]
+                da = np.array([DA[plcs] for plcs in PLCS])
                 Ylt, kcerc, vlt, saltoYlt, DALCSi = kalman_longitudinal(Ylt, kcerc, vlt, dQdx, dt, da, it, PLCS, Dc, Ber, sigmaK)
                 for i,value in enumerate(PLCS):
                     DA[value] = DALCSi[i]
 
             if data_asim_c and not data_asim_lc:
-                da = [DA[plcs] for plcs in PLCS]
+                da = np.array([DA[plcs] for plcs in PLCS])
                 Yct, kacr, kero, saltoYct, DACSi, dy0 = kalman_transversal(Yct, YCTi, Yeq, kacr, kero, dt, da, it, PLCS_CS, posero, dy0)
                 for i, value in enumerate(PLCS_CS):
                     DA[value] = DACSi[i]
@@ -499,7 +499,7 @@ def IH_LANS(INPUT):
             h = plt.figure()
             h.set_position([50, 50, 1812, 666])
 
-        nbati0 = [PERF.nbati]
+        nbati0 = np.array([PERF.nbati])
         for it in range(len(t) - 1):
             if inthidromorfo == 1:  # con interacción hidromorfo
                 if "alpha_int" not in INPUT:
