@@ -425,15 +425,13 @@ def IH_LANS(INPUT):
             if data_asim_l and not data_asim_lc:
                 da = np.array([DA[plcs] for plcs in PLCS])
                 Ylt, kcerc, vlt, saltoYlt, DALCSi = kalman_longitudinal(Ylt, kcerc, vlt, dQdx, dt, da, it, PLCS, Dc, Ber, sigmaK)
-                for i,value in enumerate(PLCS):
-                    DA[value] = DALCSi[i]
+                DA[PLCS] = DALCSi
 
             if data_asim_c and not data_asim_lc:
                 da = np.array([DA[plcs] for plcs in PLCS])
                 Yct, kacr, kero, saltoYct, DACSi, dy0 = kalman_transversal(Yct, YCTi, Yeq, kacr, kero, dt, da, it, PLCS_CS, posero, dy0)
-                for i, value in enumerate(PLCS_CS):
-                    DA[value] = DACSi[i]
-                    DY0[value] = dy0[i]
+                DA[PLCS_CS] = DACSi
+                DY0[PLCS_CS] = dy0
 
             if data_asim_lc:
                 Ylt1, kcerc1, vlt1, saltoYlt1, DALCS1, Yct1, kacr1, kero1, saltoYct1, dy01 = kalman_longitudinal_transversal(
