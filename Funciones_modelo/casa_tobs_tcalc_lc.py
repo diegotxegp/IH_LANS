@@ -94,4 +94,6 @@ def casa_tobs_tcalc_lc(t, PERF, data_asim_l, data_asim_c, data_asim_lc, **kwargs
         print(ip)
         print((len(PERF)))
 
+    DA = np.array(DA)
+
     return DA

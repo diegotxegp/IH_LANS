@@ -191,7 +191,7 @@ def IH_LANS(INPUT):
             Ntra = len(psaveasim)
         else:
             Ntra = Ntr
-            psaveasim = list(range(1, Ntr + 1))
+            psaveasim = list(range(0, Ntr))
 
         output_list = ['Hbd', 'Dbd', 'wbd', 'Q', 'kest', 'dQdx', 'Qbc', 'saltoYlt', 'kcerc', 'vlt', 'rP']
         output_length = [Ntr, Ntr, Ntr, Ntr - 1, Ntr - 1, Ntr, Ntr + 1, Ntra, Ntra, Ntra, Ntra]
@@ -216,7 +216,7 @@ def IH_LANS(INPUT):
             Ntra = len(psaveasim)
         else:
             Ntra = Ntr
-            psaveasim = list(range(1, Ntr + 1))
+            psaveasim = list(range(0, Ntr))
 
         output_list = ['Hbd', 'Dbd', 'wbd', 'Q', 'kest', 'dQdx', 'Qbc', 'saltoYct', 'kero', 'kacr', 'dy0']
         output_length = [Ntr, Ntr, Ntr, Ntr - 1, Ntr - 1, Ntr, Ntr + 1, Ntra, Ntra, Ntra, Ntra]
@@ -241,7 +241,7 @@ def IH_LANS(INPUT):
             Ntra = len(psaveasim)
         else:
             Ntra = Ntr
-            psaveasim = list(range(1, Ntr + 1))
+            psaveasim = list(range(0, Ntr))
 
         output_list = ['Hbd', 'Dbd', 'wbd', 'Q', 'kest', 'dQdx', 'Qbc', 'saltoYlt', 'kcerc', 'vlt', 'rP', 'saltoYct', 'kero', 'kacr', 'dy0']
         output_length = [Ntr, Ntr, Ntr, Ntr - 1, Ntr - 1, Ntr, Ntr + 1, Ntra, Ntra, Ntra, Ntra, Ntra, Ntra, Ntra, Ntra]
@@ -423,25 +423,22 @@ def IH_LANS(INPUT):
 
             # Asimilación de observaciones
             if data_asim_l and not data_asim_lc:
-                da = np.array([DA[plcs] for plcs in PLCS])
-                Ylt, kcerc, vlt, saltoYlt, DALCSi = kalman_longitudinal(Ylt, kcerc, vlt, dQdx, dt, da, it, PLCS, Dc, Ber, sigmaK)
+                Ylt, kcerc, vlt, saltoYlt, DALCSi = kalman_longitudinal(Ylt, kcerc, vlt, dQdx, dt, DA[PLCS], it, PLCS, Dc, Ber, sigmaK)
                 DA[PLCS] = DALCSi
 
             if data_asim_c and not data_asim_lc:
-                da = np.array([DA[plcs] for plcs in PLCS])
-                Yct, kacr, kero, saltoYct, DACSi, dy0 = kalman_transversal(Yct, YCTi, Yeq, kacr, kero, dt, da, it, PLCS_CS, posero, dy0)
+                Yct, kacr, kero, saltoYct, DACSi, dy0 = kalman_transversal(Yct, YCTi, Yeq, kacr, kero, dt, DA[PLCS_CS], it, PLCS_CS, posero, dy0)
                 DA[PLCS_CS] = DACSi
                 DY0[PLCS_CS] = dy0
 
             if data_asim_lc:
                 Ylt1, kcerc1, vlt1, saltoYlt1, DALCS1, Yct1, kacr1, kero1, saltoYct1, dy01 = kalman_longitudinal_transversal(
-                    Ylt, kcerc, vlt, dQdx, dt, DA(PLCS), it, PLCS, PLCS_CS_LCS, Dc, Ber, sigmaK, Yct, YCTi, Yeq, kacr, kero, posero, dy0)
+                    Ylt, kcerc, vlt, dQdx, dt, DA[PLCS], it, PLCS, PLCS_CS_LCS, Dc, Ber, sigmaK, Yct, YCTi, Yeq, kacr, kero, posero, dy0)
                 Ylt = Ylt1
                 kcerc = kcerc1
                 vlt = vlt1
                 saltoYlt = saltoYlt1
-                for i,value in enumerate(PLCS):
-                    DA[value] = DALCS1[i]
+                DA[PLCS] = DALCS1
                 kacr = kacr1
                 kero = kero1
                 saltoYct = saltoYct1
@@ -462,11 +459,11 @@ def IH_LANS(INPUT):
                             rP = np.empty((3, len(psaveasim)))
                             for is0 in range(len(psaveasim)):
                                 tsave = psaveasim[is0]
-                                temp = DALCS[tsave].P0
+                                temp = DALCS[tsave]["P0"]
                                 erYlt = np.sqrt(temp[0, 0])
                                 erK1 = np.sqrt(temp[1, 1])
-                                K1 = np.log(kcerc[tsave] / DALCS[tsave].kcerc0) / DALCS[tsave].sigmaK
-                                erK = -kcerc[tsave] + DALCS[tsave].kcerc0 * np.exp(DALCS[tsave].sigmaK * (K1 + erK1))
+                                K1 = np.log(kcerc[tsave] / DALCS[tsave]["kcerc0"]) / DALCS[tsave]["sigmaK"]
+                                erK = -kcerc[tsave] + DALCS[tsave]["kcerc0"] * np.exp(DALCS[tsave]["sigmaK"] * (K1 + erK1))
                                 ervlt = np.sqrt(temp[2, 2])
                                 rP[:, is0] = [erYlt, erK, ervlt]
                             RES["rP"][count_output, :, :] = rP
