@@ -17,7 +17,7 @@ def filtro_kalman_longitudinal(estado_ant, Jacobito, DA, it):
 
             Yobs = DA[i]["Ylt"][contador]
             K = DA[i]["P0"]*H.T / (H*DA[i]["P0"]*H.T + DA[i]["R"])
-            modificacionKalman = np.dot(K, (Yobs - np.dot(H, estado_ant[:, i])))
+            modificacionKalman = K * (Yobs - H * estado_ant[:, i])
             estado_ant_m = estado_ant[:, i]
 
             estado_ant_m[1] = np.log(estado_ant[1, i] / DA[i]["kcerc0"]) / DA[i]["sigmaK"]
