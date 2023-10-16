@@ -36,7 +36,7 @@ def filtro_kalman_transversal(estado_ant, Jacobito, DACS, it, pero, Yct):
                     DACS[i]["pos_c"] = contador + 1
 
                 Yobs = DACS[i]["Yct"][contador]
-                K = np.dot(np.dot(P, H.T), np.linalg.inv(np.dot(np.dot(H, P), H.T) + DACS[i].R_c))
+                K = np.dot(np.dot(P, H.T), np.linalg.inv(np.dot(np.dot(H, P), H.T) + DACS[i]["R_c"]))
                 modificacionKalman = np.dot(K, Yobs - np.dot(H, estado_ant[:][i]))
                 estado_post[:][i] = HM * (estado_ant[:][i] + modificacionKalman)
 

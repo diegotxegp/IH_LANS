@@ -26,7 +26,7 @@ def filtro_kalman_longitudinal(estado_ant, Jacobito, DA, it):
 
             # modificamos el término en K para guardar signo
             estado_ant_m[1] = np.log(estado_ant[1, i] / DA[i]["kcerc0"]) / DA[i]["sigmaK"]
-            estado_post[:, i] = estado_ant_m + modificacionKalman
+            estado_post[:, i] = estado_ant_m + modificacionKalman[:,0]
             # pasamos el término en K del vector de estado
             estado_post[1, i] = DA[i]["kcerc0"] * np.exp(DA[i]["sigmaK"] * estado_post[1, i])
             # actualizamos error estado P
