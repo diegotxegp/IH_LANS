@@ -8,7 +8,7 @@ def filtro_kalman_transversal(estado_ant, Jacobito, DACS, it, pero, Yct):
     nel = estado_ant.shape[0]
     saltoYct = np.zeros(Jacobito.shape[2])
     Yctn = np.zeros(Yct.shape)
-    estado_post = [np.empty(estado_ant.shape)]
+    estado_post = np.zeros(estado_ant.shape)
 
     for i in range(len(DACS)):
         if pero[i] == 1:

@@ -244,15 +244,15 @@ qerrKero = 1e-2
 errDy0 = 1
 qerrDy0 = 0.2
 R_c = 1
-posguarda = list(range(2 * 365, 15 * 365 + 1, 15))  # Posiciones de guardado
+posguarda = list(range(2 * 365 - 1, 15 * 365, 15))  # Posiciones de guardado
 
 for i in range(len(PERF)):
     # Longshore
     PERF[i]['rP0'] = np.diag([errY, errK, errvlt])
     PERF[i]['rQ'] = np.diag([qY, qerrK, qerrvlt])
     PERF[i]['R'] = R
-    PERF[i]['date_obs'] = RES['t_output'][posguarda - 1]
-    PERF[i]['Y_obs_lt'] = RES['YLT'][posguarda - 1, i]
+    PERF[i]['date_obs'] = RES['t_output'][posguarda]
+    PERF[i]['Y_obs_lt'] = RES['YLT'][posguarda, i]
 
     # Cross-shore
     PERF[i]['rPero0_c'] = np.diag([errYct, errKero, 0, 0, errDy0])
@@ -260,7 +260,7 @@ for i in range(len(PERF)):
     PERF[i]['rQero_c'] = np.diag([qerrYct, qerrKero, 0, 0, qerrDy0])
     PERF[i]['rQacr_c'] = np.diag([0, 0, qerrYct, qerrKacr, qerrDy0])
     PERF[i]['R_c'] = R_c
-    PERF[i]['Y_obs_ct'] = RES['YCT'][posguarda - 1, i]
+    PERF[i]['Y_obs_ct'] = RES['YCT'][posguarda, i]
 
 # Crea una copia de INPUT2 y actualiza los parámetros necesarios
 INPUT3 = INPUT2.copy()
