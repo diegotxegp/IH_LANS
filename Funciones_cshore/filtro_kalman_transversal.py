@@ -6,7 +6,7 @@ def filtro_kalman_transversal(estado_ant, Jacobito, DACS, it, pero, Yct):
     Hero = np.array([1, 0, 0, 0, 0])
     Hacr = np.array([0, 0, 1, 0, 0])
     nel = estado_ant.shape[0]
-    saltoYct = np.zeros(Jacobito.shape[2])
+    saltoYct = np.zeros(Jacobito.shape[0])
     Yctn = np.zeros(Yct.shape)
     estado_post = np.zeros(estado_ant.shape)
 
@@ -42,7 +42,7 @@ def filtro_kalman_transversal(estado_ant, Jacobito, DACS, it, pero, Yct):
                 # calculamos ganancia Kalman
                 K = P * H.T / (H * P * H.T + DACS[i]["R_c"])
                 modificacionKalman = K * (Yobs - H * estado_ant[:,i])
-                estado_post[:,i] = HM.T * (estado_ant[:,i] + modificacionKalman)
+                estado_post[:,i] = (HM.T * (estado_ant[:,i] + modificacionKalman))[0]
 
                 # actualizamos error estado P
                 if pero[i] == 1:
