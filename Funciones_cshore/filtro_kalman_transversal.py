@@ -12,7 +12,7 @@ def filtro_kalman_transversal(estado_ant, Jacobito, DACS, it, pero, Yct):
 
     for i in range(len(DACS)):
         if pero[i] == 1:
-            P = Jacobito[i][:][:] * DACS[i]["Pero0_c"] * np.transpose(Jacobito[i][:][:]) + DACS[i]["Qero_c"]
+            P = Jacobito[i,:,:] * DACS[i]["Pero0_c"] * np.transpose(Jacobito[i,:,:]) + DACS[i]["Qero_c"]
             DACS[i]["Pero0_c"] = P
             DACS[i]["Pacr0_c"][4][:] = P[4][:]
             DACS[i]["Pacr0_c"][:][4] = P[:][4]
@@ -20,7 +20,7 @@ def filtro_kalman_transversal(estado_ant, Jacobito, DACS, it, pero, Yct):
             H = Hero
             HM = np.array([1, 1, 0, 1, 1])
         else:
-            P = Jacobito[i][:][:] * DACS[i]["Pacr0_c"] * np.transpose(Jacobito[i][:][:]) + DACS[i]["Qacr_c"]
+            P = Jacobito[i,:,:] * DACS[i]["Pacr0_c"] * np.transpose(Jacobito[i,:,:]) + DACS[i]["Qacr_c"]
             DACS[i]["Pacr0_c"] = P
             DACS[i]["Pero0_c"][4, :] = P[4, :]
             DACS[i]["Pero0_c"][:, 4] = P[:, 4]
