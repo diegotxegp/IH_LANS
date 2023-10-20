@@ -1,3 +1,8 @@
+# Nombre del archivo: bahias.py
+# Autor: Diego García Prieto (diegotxegp @ Github)
+# Fecha de creación: septiembre de 2023
+# 
+
 import os
 import numpy as np
 import pandas as pd
@@ -282,7 +287,7 @@ plt.plot(RES['t_output'], RES['YLT'][:, tr], label='RES')
 plt.plot(RES['t_output'], RES2['YLT'][:, tr], label='RES2')
 plt.plot(RES['t_output'], RES3['YLT'][:, tr], label='RES3')
 plt.plot(PERF[tr]['date_obs'], PERF[tr]['Y_obs_lt'], 'o', label='Observación')
-plt.gca().xaxis.set_major_formatter(DateFormatter('%Y-%m-%d'))  # Formato de fechas en el eje x
+#plt.gca().xaxis.set_major_formatter(DateFormatter('%Y-%m-%d'))  # Formato de fechas en el eje x
 plt.xlabel('Fecha')
 plt.ylabel('YLT')
 plt.legend()
@@ -294,7 +299,7 @@ plt.plot(RES['t_output'], RES['YCT'][:, tr], label='RES')
 plt.plot(RES['t_output'], RES2['YCT'][:, tr], label='RES2')
 plt.plot(RES['t_output'], RES3['YCT'][:, tr], label='RES3')
 plt.plot(PERF[tr]['date_obs'], PERF[tr]['Y_obs_ct'], 'o', label='Observación')
-plt.gca().xaxis.set_major_formatter(DateFormatter('%Y-%m-%d'))  # Formato de fechas en el eje x
+#plt.gca().xaxis.set_major_formatter(DateFormatter('%Y-%m-%d'))  # Formato de fechas en el eje x
 plt.xlabel('Fecha')
 plt.ylabel('YCT')
 plt.legend()

@@ -1,3 +1,8 @@
+# Nombre del archivo: bahias.py
+# Autor: Diego García Prieto (diegotxegp @ Github)
+# Fecha de creación: septiembre de 2023
+# 
+
 import numpy as np
 
 def filtro_kalman_transversal(estado_ant, Jacobito, DACS, it, pero, Yct):

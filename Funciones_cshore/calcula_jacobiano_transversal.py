@@ -1,3 +1,8 @@
+# Nombre del archivo: bahias.py
+# Autor: Diego García Prieto (diegotxegp @ Github)
+# Fecha de creación: septiembre de 2023
+# 
+
 import numpy as np
 
 def calcula_jacobiano_transversal(Yeq, Yst, posero, kacr, kero, PLCS_CS, dt, dy0):
