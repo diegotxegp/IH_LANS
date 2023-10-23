@@ -5,16 +5,8 @@ from Funciones_modelo.waveguo import waveguo
 
 def snell_shoalrefrot(H, T, DIR, h0, gamma, nbati):
     # Función a hacer cero: H0*kr*ks-hbgamma=0
-    def prot(H0, T, alpha0, c0, cg0, h1, gamma):
-        angle_arg = np.arcsin(np.sin(np.deg2rad(alpha0)) / (c0 / T * (2 * np.pi / T) ** 2 * h1 / 9.81 *
-            (1 - np.exp(-(2 * np.pi / T * np.sqrt(h1 / 9.81)) ** 2.5)) ** (-0.4) / h1) ** (-1) * 2 * np.pi)
-        kr_term = np.sqrt(np.cos(np.deg2rad(alpha0)) / (np.cos(angle_arg)))
-        ks_term = np.sqrt(cg0 / (0.5 * (1 + (4 * np.pi * h1 / (
-            (2 * np.pi / T) ** 2 * h1 / 9.81 * (1 - np.exp(-(2 * np.pi / T * np.sqrt(h1 / 9.81)) ** 2.5)) ** (-0.4) / h1) ** (-1) * 2 * np.pi)) / (
-            np.sinh(4 * np.pi * h1 / (
-            (2 * np.pi / T) ** 2 * h1 / 9.81 * (1 - np.exp(-(2 * np.pi / T * np.sqrt(h1 / 9.81)) ** 2.5)) ** (-0.4) / h1) ** (-1) * 2 * np.pi)))) * \
-            ((2 * np.pi / T) ** 2 * h1 / 9.81 * (1 - np.exp(-(2 * np.pi / T * np.sqrt(h1 / 9.81)) ** 2.5)) ** (-0.4) / h1) ** (-1) * 2 * np.pi / T
-        return H0 * kr_term * ks_term - gamma * h1
+    def _prot(H0, T, alpha0, c0, cg0, h1, gamma):
+        return H0 * np.sqrt(np.cos(np.deg2rad(alpha0)) / (np.cos(np.arcsin(np.sin(np.deg2rad(alpha0)) / (c0 / T * ((2 * np.pi / T) ** 2 * h1 / 9.81 * (1 - np.exp(-(2 * np.pi / T * np.sqrt(h1 / 9.81)) ** 2.5)) ** (-0.4) / h1) ** (-1) * 2 * np.pi))))) * np.sqrt(c0 / (0.5 * (1 + (4 * np.pi * h1 / (((2 * np.pi / T) ** 2 * h1 / 9.81 * (1 - np.exp(-(2 * np.pi / T * np.sqrt(h1 / 9.81)) ** 2.5)) ** (-0.4) / h1) ** (-1) * 2 * np.pi) / (np.sinh(4 * np.pi * h1 / (((2 * np.pi / T) ** 2 * h1 / 9.81 * (1 - np.exp(-(2 * np.pi / T * np.sqrt(h1 / 9.81)) ** 2.5)) ** (-0.4) / h1) ** (-1) * 2 * np.pi)))) * ((2 * np.pi / T) ** 2 * h1 / 9.81 * (1 - np.exp(-(2 * np.pi / T * np.sqrt(h1 / 9.81)) ** 2.5)) ** (-0.4) / h1) ** (-1) * 2 * np.pi) / T)) - gamma * h1
 
     # Calculamos longitud de onda offshore
     L0, k0 = waveguo(T, h0)
@@ -31,13 +23,13 @@ def snell_shoalrefrot(H, T, DIR, h0, gamma, nbati):
     for it in range(len(H)):
         if abs(Dir_dif[it]) < 90 and H[it] > 0.15:  # Oleaje entrante grande (el pequeño da errores numéricos)
             try:
-                hsol[it] = fsolve(lambda h1: prot(H[it], T[it], Dir_dif[it], c0[it], cg0[it], h1, gamma), H[it] / gamma, **options)
+                hsol[it] = fsolve(lambda h1: _prot(H[it], T[it], Dir_dif[it], c0[it], cg0[it], h1, gamma), H[it] / gamma, **options)
             except:
                 try:
-                    hsol[it] = fsolve(lambda h1: prot(H[it], T[it], Dir_dif[it], c0[it], cg0[it], h1, gamma), H[it] / gamma * 0.8, **options)
+                    hsol[it] = fsolve(lambda h1: _prot(H[it], T[it], Dir_dif[it], c0[it], cg0[it], h1, gamma), H[it] / gamma * 0.8, **options)
                 except:
                     try:
-                        hsol[it] = fsolve(lambda h1: prot(H[it], T[it], Dir_dif[it], c0[it], cg0[it], h1, gamma), H[it] / gamma * 0.5, **options)
+                        hsol[it] = fsolve(lambda h1: _prot(H[it], T[it], Dir_dif[it], c0[it], cg0[it], h1, gamma), H[it] / gamma * 0.5, **options)
                     except:
                         hsol[it] = H[it] / gamma
             if np.isnan(hsol[it]):

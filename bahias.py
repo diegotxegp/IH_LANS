@@ -279,6 +279,21 @@ INPUT3['OUTPUTLIST'] = ['Hbd', 'kcerc', 'vlt']  # Outputs por defecto: t_output 
 RES3 = IH_LANS(INPUT3)
 
 
+#IH_LANS con propagacion (calcularotura=1)
+
+print("IH_LANS con propagacion (calcularotura=1)")
+
+# Datos propagación
+INPUT4 = INPUT.copy()
+
+INPUT4['calcularotura'] = 1
+INPUT4['inthidromorfo'] = 0
+INPUT4['alpha_int'] = 0
+INPUT4['gamma'] = 0.50
+
+RES4 = IH_LANS(INPUT4)
+
+
 tr = 30
 
 # Gráfico Longshore
@@ -286,8 +301,8 @@ plt.figure(figsize=(10, 5))
 plt.plot(RES['t_output'], RES['YLT'][:, tr], label='RES')
 plt.plot(RES['t_output'], RES2['YLT'][:, tr], label='RES2')
 plt.plot(RES['t_output'], RES3['YLT'][:, tr], label='RES3')
+plt.plot(RES['t_output'], RES4['YLT'][:, tr], label='RES4')
 plt.plot(PERF[tr]['date_obs'], PERF[tr]['Y_obs_lt'], 'o', label='Observación')
-#plt.gca().xaxis.set_major_formatter(DateFormatter('%Y-%m-%d'))  # Formato de fechas en el eje x
 plt.xlabel('Fecha')
 plt.ylabel('YLT')
 plt.legend()
@@ -298,8 +313,8 @@ plt.figure(figsize=(10, 5))
 plt.plot(RES['t_output'], RES['YCT'][:, tr], label='RES')
 plt.plot(RES['t_output'], RES2['YCT'][:, tr], label='RES2')
 plt.plot(RES['t_output'], RES3['YCT'][:, tr], label='RES3')
+plt.plot(RES['t_output'], RES4['YCT'][:, tr], label='RES4')
 plt.plot(PERF[tr]['date_obs'], PERF[tr]['Y_obs_ct'], 'o', label='Observación')
-#plt.gca().xaxis.set_major_formatter(DateFormatter('%Y-%m-%d'))  # Formato de fechas en el eje x
 plt.xlabel('Fecha')
 plt.ylabel('YCT')
 plt.legend()

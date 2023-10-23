@@ -28,8 +28,8 @@ def propaga_rotura(PERF, DYN, gamma, t, refNMM, cotasZ, calcularotur):
             AT = DYN[id]["AT"][poscalc]
             SS = DYN[id]["SS"][poscalc]
             SLR = DYN[id]["SLR"][poscalc]
-            nivel = AT + SS + SLR + refNMM + DYN[id].h0
-            Hs = DYN[id]["Hs"][poscalc]
+            nivel = AT + SS + SLR + refNMM + DYN[id]["h0"]
+            Hs = np.array(DYN[id]["Hs"])[poscalc]
             Dir = DYN[id]["Dir"][poscalc]
             Tp = DYN[id]["Tp"][poscalc]
             nbati = PERF[i]["nbati"]
